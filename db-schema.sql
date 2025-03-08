@@ -30,8 +30,14 @@ CREATE TABLE IF NOT EXISTS photo_tags (
 
 CREATE VIRTUAL TABLE photos_fts USING fts5(
   photo_idx UNINDEXED, 
+  photo_id,
   photo_title,
   photo_collection,
+  photo_location,
+  photo_year,
+  camera,
+  film_stock,
+  film_format,
   tag_names  
 );
 
