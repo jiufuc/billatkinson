@@ -1,5 +1,8 @@
+name = "billatkinson"
+compatibility_date = "2025-03-09"
+
+
 [[d1_databases]]
 binding = "DB"
 database_name = "bill-photo"
 database_id = "0015bc15-9740-4004-855b-24249f37b6af"
-preview_database_id = "DB" 

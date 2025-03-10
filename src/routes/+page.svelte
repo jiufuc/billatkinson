@@ -19,6 +19,7 @@
 </script>
 
 <section>
+  <h1>Test photo grid</h1>
   {#each $photos as photo}
     <a class="grid-item" href="https://static.billatkinson.us/2240/2240-{photo.photo_id}_Image.webp">
       <img src="https://static.billatkinson.us/480/480-{photo.photo_id}_Image.webp" alt={photo.photo_title} />
