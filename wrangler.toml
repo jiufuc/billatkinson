@@ -1,7 +1,5 @@
-# If you are only using Pages + D1, you only need the below in your Wrangler config file to interact with D1 locally.
-
 [[d1_databases]]
 binding = "DB"
 database_name = "bill-photo"
 database_id = "0015bc15-9740-4004-855b-24249f37b6af"
-preview_database_id = "DB" # Required for Pages local development
+preview_database_id = "DB" 
