@@ -1,4 +1,4 @@
-export async function GET({ request, platform }) {
+export async function GET({ platform }) {
   if (!platform) {
     return new Response("Platform not available", { status: 500 });
   }
