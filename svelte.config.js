@@ -1,4 +1,5 @@
 import adapter from '@sveltejs/adapter-cloudflare';
+import path from "path";
 
 export default {
 	kit: {
@@ -12,6 +13,9 @@ export default {
 				environment: undefined,
 				persist: true
 			}
-		})
+		}),
+    alias: {
+      $lib: path.resolve("./src/lib"),
+    },
 	}
 };
