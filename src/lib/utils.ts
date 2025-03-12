@@ -1,5 +1,5 @@
 // src/lib/utils.ts
-import type { AppState } from './types';
+import type { AppState, Pagination, Photo } from './types';
 
 export function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -23,4 +23,11 @@ export function buildQueryParams(state: AppState, pageNumber: number): URLSearch
     ...(state.selectedCollection !== 'All Collections' && { collection: state.selectedCollection }),
     ...(state.selectedTag !== 'All Tags' && { color: state.selectedTag.toLowerCase() })
   });
+}
+
+export async function fetchPhotos(state: AppState, pageNumber: number): Promise<{ photos: Photo[]; pagination: Pagination }> {
+  const params = buildQueryParams(state, pageNumber);
+  const response = await fetch(`/api/photos?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch more photos');
+  return response.json();
 }

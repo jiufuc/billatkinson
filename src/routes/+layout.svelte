@@ -4,9 +4,11 @@
 	let { children } = $props();
 </script>
 
-<main>
-  <Header />
-  <Subheader />
-  {@render children()}
-  <Footer />
-</main>
+<Header />
+<Subheader />
+  <div class="wrap" role="document">
+    <main class="main container-fluid">
+      {@render children()};
+    </main>
+  </div>
+<Footer />
