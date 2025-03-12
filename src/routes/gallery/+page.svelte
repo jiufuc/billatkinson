@@ -4,7 +4,22 @@
   import { writable } from 'svelte/store';
   import type { Photo, Pagination, AppState } from '$lib/types';
   import { debounce, buildQueryParams } from '$lib/utils'; 
+  import 'lazysizes';
+  import 'masonry-layout';
 
+  // Define the widths for the srcset
+  const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
+
+  // Function to generate a responsive srcset using Cloudflare Image Resizing
+  function generateSrcset(photoId: number, widths: number[]): string {
+    const zone = 'https://static.billatkinson.us';
+    const sourceImage = `2240/2240-${photoId}_Image.webp`;
+    return widths
+      .map(width => `${zone}/cdn-cgi/image/width=${width}/${sourceImage} ${width}w`)
+      .join(', ');
+  }
+
+  // Define the props passed from the server
   export let data: {
     photos: Photo[];
     pagination: Pagination;
@@ -12,6 +27,7 @@
     tags: string[];
   };
 
+  // Create a reactive store to manage application state
   const applicationState = writable<AppState>({
     photos: data.photos,
     currentPage: 1,
@@ -23,9 +39,11 @@
     selectedTag: 'All Tags'
   });
 
+  // Arrays to store dynamically fetched filter options
   let availableCollections = data.collections;
   let availableTags = data.tags;
 
+  // Function to fetch and load photo data from the API
   async function loadPhotoData(pageNumber: number, shouldReset: boolean = false): Promise<void> {
     if ($applicationState.isLoading || (!$applicationState.hasMorePages && !shouldReset)) return;
 
@@ -48,6 +66,7 @@
     }
   }
 
+  // Function to handle scroll events and load more data
   function handleScrollEvent(): void {
     if ($applicationState.isLoading || !$applicationState.hasMorePages) return;
     const scrollHeight = document.documentElement.scrollHeight;
@@ -61,6 +80,7 @@
     }
   }
 
+  // Function to handle filter changes and reset pagination
   function resetAndLoad(): void {
     applicationState.update(state => ({
       ...state,
@@ -71,21 +91,25 @@
     loadPhotoData(1, true);
   }
 
+  // Debounced function for search input to prevent rapid API calls
   const debouncedHandleFilterChange = debounce(() => {
     console.log('Debounced filter change triggered for search query:', $applicationState.searchQuery);
     resetAndLoad();
   }, 300);
 
+  // Function to handle immediate filter changes (e.g., dropdowns)
   function handleFilterChange(): void {
     resetAndLoad();
   }
 
+  // Lifecycle hook to initialize data and event listeners
   onMount(() => {
     loadPhotoData($applicationState.currentPage);
     window.addEventListener('scroll', handleScrollEvent);
     handleScrollEvent();
   });
 
+  // Cleanup hook to remove event listeners
   onDestroy(() => {
     window.removeEventListener('scroll', handleScrollEvent);
   });
@@ -124,8 +148,17 @@
       <p>No photos available.</p>
     {/if}
     {#each $applicationState.photos as photo (photo.photo_id)}
-      <a class="grid-item" href={`https://static.billatkinson.us/2240/2240-${photo.photo_id}_Image.webp`}>
-        <img src={`https://static.billatkinson.us/320/320-${photo.photo_id}_Image.webp`} alt={photo.photo_title} />
+      <a
+        href={`https://static.billatkinson.us/3000/3000-${photo.photo_id}_Image.webp`}
+        class="grid-item"
+      >
+        <img
+          data-srcset={generateSrcset(photo.photo_id, widths)}
+          data-src={`https://static.billatkinson.us/1024/1024-${photo.photo_id}_Image.webp`}
+          data-sizes="auto"
+          alt={photo.photo_title}
+          class="lazyload"
+        />
       </a>
     {/each}
     {#if $applicationState.isLoading}
