@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
-  import { get } from "svelte/store";
+  import { page } from "$app/state";
 
   // Define the structure of each menu item
   type MenuItem = {
@@ -19,7 +18,7 @@
   ];
 
   // Get current path from SvelteKit's store
-  let currentPath: string = get(page).url.pathname;
+  let currentPath: string = page.url.pathname;
 
   onMount(() => {
     const sentinel = document.getElementById("sticky-sentinel");

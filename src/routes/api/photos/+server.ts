@@ -10,7 +10,7 @@ export async function GET({ url, platform }) {
 
   // Parse and validate the page number from the URL parameters
   const pageNumber = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
-  const itemsPerPage = 25;
+  const itemsPerPage = 12;
   const offsetValue = (pageNumber - 1) * itemsPerPage;
 
   // Extract filter parameters from the URL

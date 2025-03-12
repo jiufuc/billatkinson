@@ -1,6 +1,6 @@
 <!-- src/routes/gallery/+page.svelte -->
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
   import type { Photo, Pagination, AppState } from '$lib/types';
   import { debounce, fetchPhotos } from '$lib/utils';
@@ -26,69 +26,98 @@
 
   let availableCollections = data.collections;
   let availableTags = data.tags;
+  let sentinel: HTMLDivElement;
 
-  async function loadPhotoData(pageNumber: number, shouldReset: boolean = false): Promise<void> {
-    if ($applicationState.isLoading || (!$applicationState.hasMorePages && !shouldReset)) return;
+  // Debounced filter change handler
+  const debouncedFilterChange = debounce(() => resetAndLoad(), 300);
 
+  function handleFilterChange() {
+    debouncedFilterChange();
+  }
+
+  // Load initial photos or reset after filter change
+  async function loadInitial(): Promise<void> {
     applicationState.update(state => ({ ...state, isLoading: true }));
-
-    let newState: Partial<AppState> = { isLoading: false };
-
     try {
-      const { photos: newPhotos, pagination } = await fetchPhotos($applicationState, pageNumber);
-      newState.photos = shouldReset || pageNumber === 1 ? newPhotos : [...$applicationState.photos, ...newPhotos];
-      newState.hasMorePages = pagination.hasNext;
-      newState.errorMessage = null;
+      const { photos, pagination } = await fetchPhotos($applicationState, 1);
+      applicationState.set({
+        ...$applicationState,
+        photos,
+        hasMorePages: pagination.hasNext,
+        currentPage: 1,
+        isLoading: false
+      });
     } catch (error) {
-      newState.errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    } finally {
-      applicationState.update(state => ({ ...state, ...newState }));
+      applicationState.update(state => ({
+        ...state,
+        errorMessage: (error as Error).message,
+        isLoading: false
+      }));
     }
   }
 
-  function handleScrollEvent(): void {
+  // Load more photos for infinite scrolling
+  async function loadMorePhotos(): Promise<void> {
     if ($applicationState.isLoading || !$applicationState.hasMorePages) return;
-    const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    const clientHeight = document.documentElement.clientHeight;
-    const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
-
-    if (distanceFromBottom < 400 || scrollHeight <= clientHeight) {
-      loadMore();
+    const nextPage = $applicationState.currentPage + 1;
+    applicationState.update(state => ({ ...state, isLoading: true }));
+    try {
+      const { photos, pagination } = await fetchPhotos($applicationState, nextPage);
+      applicationState.update(state => ({
+        ...state,
+        photos: [...state.photos, ...photos],
+        hasMorePages: pagination.hasNext,
+        currentPage: nextPage,
+        isLoading: false
+      }));
+    } catch (error) {
+      applicationState.update(state => ({
+        ...state,
+        errorMessage: (error as Error).message,
+        isLoading: false
+      }));
     }
   }
 
-  function resetAndLoad(): void {
+  function resetAndLoad() {
     applicationState.update(state => ({
       ...state,
       currentPage: 1,
       hasMorePages: true,
       photos: []
     }));
-    loadPhotoData(1, true);
+    loadInitial();
   }
 
-  const debouncedHandleFilterChange = debounce(() => {
-    console.log('Debounced filter change triggered for search query:', $applicationState.searchQuery);
-    resetAndLoad();
-  }, 300);
-
-  function handleFilterChange(): void {
-    resetAndLoad();
+  function loadMore() {
+    loadMorePhotos();
   }
 
-  function loadMore(): void {
-    applicationState.update(state => ({ ...state, currentPage: state.currentPage + 1 }));
-    loadPhotoData($applicationState.currentPage);
+  // Intersection Observer for infinite scrolling
+  function createIntersectionObserver(callback: () => void): IntersectionObserver {
+    return new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !$applicationState.isLoading &&
+          $applicationState.hasMorePages
+        ) {
+          callback();
+        }
+      },
+      { threshold: 0.1 }
+    );
   }
 
   onMount(() => {
-    window.addEventListener('scroll', handleScrollEvent);
-    handleScrollEvent();
-  });
-
-  onDestroy(() => {
-    window.removeEventListener('scroll', handleScrollEvent);
+    const observer = createIntersectionObserver(loadMore);
+    if (sentinel) {
+      observer.observe(sentinel);
+      if (sentinel.getBoundingClientRect().top < window.innerHeight) {
+        loadMore();
+      }
+    }
+    return () => observer.disconnect();
   });
 </script>
 
@@ -98,7 +127,7 @@
       type="text"
       placeholder="Search photos..."
       bind:value={$applicationState.searchQuery}
-      on:input={debouncedHandleFilterChange}
+      on:input={handleFilterChange}
     />
     <select
       bind:value={$applicationState.selectedCollection}
@@ -123,8 +152,12 @@
     isLoading={$applicationState.isLoading}
     hasMorePages={$applicationState.hasMorePages}
     loadMore={loadMore}
-    errorMessage={null}
+    errorMessage={$applicationState.errorMessage}
   />
+
+  {#if $applicationState.hasMorePages}
+    <div bind:this={sentinel} style="height: 1px;"></div>
+  {/if}
 </section>
 
 <style>

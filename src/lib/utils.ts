@@ -18,7 +18,7 @@ export function debounce<T extends (...args: any[]) => void>(func: T, wait: numb
 export function buildQueryParams(state: AppState, pageNumber: number): URLSearchParams {
   return new URLSearchParams({
     page: pageNumber.toString(),
-    limit: '25',
+    limit: '12',
     ...(state.searchQuery && { search: state.searchQuery }),
     ...(state.selectedCollection !== 'All Collections' && { collection: state.selectedCollection }),
     ...(state.selectedTag !== 'All Tags' && { color: state.selectedTag.toLowerCase() })

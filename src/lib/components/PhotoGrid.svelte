@@ -33,6 +33,7 @@
         columnWidth: '.grid-item',
         gutter: '.gutter-sizer',
         percentPosition: true,
+        transitionDuration: 0,
       });
       msnry.layout();
     });
