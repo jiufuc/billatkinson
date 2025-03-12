@@ -1,4 +1,3 @@
-<!-- src/routes/gallery/+page.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
@@ -28,8 +27,14 @@
   let availableCollections = data.collections;
   let availableTags = data.tags;
   let sentinel: HTMLDivElement;
+  let loadMorePromise = Promise.resolve();
+  let observer: IntersectionObserver;
 
   const debouncedFilterChange = debounce(() => resetAndLoad(), 300);
+
+  const debouncedLoadMore = debounce(() => {
+    loadMorePromise = loadMorePromise.then(() => loadMorePhotos());
+  }, 300);
 
   function handleFilterChange() {
     debouncedFilterChange();
@@ -76,22 +81,23 @@
   async function loadMorePhotos(): Promise<void> {
     if ($applicationState.isLoading || !$applicationState.hasMorePages) return;
 
-    if ($applicationState.prefetchedData) {
-      const { photos, pagination } = $applicationState.prefetchedData;
-      applicationState.update(state => ({
-        ...state,
-        photos: [...state.photos, ...photos],
-        hasMorePages: pagination.hasNext,
-        currentPage: state.currentPage + 1,
-        prefetchedData: null
-      }));
-      if (pagination.hasNext) {
-        prefetchNextPage();
-      }
-    } else {
-      const nextPage = $applicationState.currentPage + 1;
-      applicationState.update(state => ({ ...state, isLoading: true }));
-      try {
+    applicationState.update(state => ({ ...state, isLoading: true }));
+    try {
+      if ($applicationState.prefetchedData) {
+        const { photos, pagination } = $applicationState.prefetchedData;
+        applicationState.update(state => ({
+          ...state,
+          photos: [...state.photos, ...photos],
+          hasMorePages: pagination.hasNext,
+          currentPage: state.currentPage + 1,
+          prefetchedData: null,
+          isLoading: false
+        }));
+        if (pagination.hasNext) {
+          prefetchNextPage();
+        }
+      } else {
+        const nextPage = $applicationState.currentPage + 1;
         const { photos, pagination } = await fetchPhotos($applicationState, nextPage);
         applicationState.update(state => ({
           ...state,
@@ -103,13 +109,13 @@
         if (pagination.hasNext) {
           prefetchNextPage();
         }
-      } catch (error) {
-        applicationState.update(state => ({
-          ...state,
-          errorMessage: (error as Error).message,
-          isLoading: false
-        }));
       }
+    } catch (error) {
+      applicationState.update(state => ({
+        ...state,
+        errorMessage: (error as Error).message,
+        isLoading: false
+      }));
     }
   }
 
@@ -117,18 +123,20 @@
     applicationState.update(state => ({
       ...state,
       currentPage: 1,
-      hasMorePages: true,
       photos: [],
-      prefetchedData: null
+      prefetchedData: null,
+      isLoading: false,
+      errorMessage: null
     }));
     loadInitial();
   }
 
   function loadMore() {
-    loadMorePhotos();
+    debouncedLoadMore();
   }
 
   function createIntersectionObserver(callback: () => void): IntersectionObserver {
+    const rootMargin = `${Math.round(window.innerHeight * 0.6)}px`;
     return new IntersectionObserver(
       (entries) => {
         if (
@@ -139,20 +147,34 @@
           callback();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0, rootMargin }
     );
   }
 
   onMount(() => {
-    const observer = createIntersectionObserver(loadMore);
-    if (sentinel) {
-      observer.observe(sentinel);
-      if (sentinel.getBoundingClientRect().top < window.innerHeight) {
-        loadMore();
-      }
-    }
-    return () => observer.disconnect();
+    observer = createIntersectionObserver(loadMore);
+
+    const handleResize = debounce(() => {
+      observer.disconnect();
+      observer = createIntersectionObserver(loadMore);
+      if (sentinel) observer.observe(sentinel);
+    }, 200);
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
   });
+
+  $: if (sentinel && $applicationState.hasMorePages) {
+    observer.observe(sentinel);
+  }
+
+  $: if (sentinel && !$applicationState.hasMorePages) {
+    observer.unobserve(sentinel);
+  }
 </script>
 
 <section>
@@ -185,7 +207,6 @@
     photos={$applicationState.photos}
     isLoading={$applicationState.isLoading}
     hasMorePages={$applicationState.hasMorePages}
-    loadMore={loadMore}
     errorMessage={$applicationState.errorMessage}
   />
 

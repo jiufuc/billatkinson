@@ -2,6 +2,7 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
   import type { Photo } from '$lib/types';
+  import { debounce } from '$lib/utils';
   import 'lazysizes';
   import Masonry from 'masonry-layout';
   import imagesLoaded from 'imagesloaded';
@@ -9,7 +10,6 @@
   export let photos: Photo[];
   export let isLoading: boolean;
   export let hasMorePages: boolean;
-  export let loadMore: () => void;
   export let errorMessage: string | null;
 
   let grid: HTMLElement;
@@ -41,46 +41,29 @@
 
   onMount(() => {
     masonryInit();
-
-    const handleScroll = () => {
-      if (isLoading || !hasMorePages) return;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const scrollTop = document.documentElement.scrollTop;
-      const clientHeight = document.documentElement.clientHeight;
-      const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
-
-      if (distanceFromBottom < 400 || scrollHeight <= clientHeight) {
-        loadMore();
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
   });
 
   $: if (msnry && photos.length > 0) {
     (async () => {
-      await tick(); 
+      await tick();
       imagesLoaded(grid, () => {
-        msnry.reloadItems(); 
-        msnry.layout(); 
+        msnry.reloadItems();
+        msnry.layout();
       });
     })();
   }
 
-  document.addEventListener('lazyloaded', () => {
-    if (msnry) {
-      msnry.layout();
-    }
-  });
+  const debouncedLayout = debounce(() => {
+    if (msnry) msnry.layout();
+  }, 300);
+
+  document.addEventListener('lazyloaded', debouncedLayout);
 
   onDestroy(() => {
     if (msnry) {
       msnry.destroy();
     }
+    document.removeEventListener('lazyloaded', debouncedLayout);
   });
 </script>
 
