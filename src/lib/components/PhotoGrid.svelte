@@ -1,11 +1,11 @@
 <!-- src/lib/components/PhotoGrid.svelte -->
 <script lang="ts">
-  import { onMount, onDestroy, tick } from 'svelte';
-  import type { Photo } from '$lib/types';
-  import { debounce } from '$lib/utils';
-  import 'lazysizes';
-  import Masonry from 'masonry-layout';
-  import imagesLoaded from 'imagesloaded';
+  import { onMount, onDestroy, tick } from "svelte";
+  import type { Photo } from "$lib/types";
+  import { debounce } from "$lib/utils";
+  import "lazysizes";
+  import Masonry from "masonry-layout";
+  import imagesLoaded from "imagesloaded";
 
   export let photos: Photo[];
   export let isLoading: boolean;
@@ -18,20 +18,23 @@
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
 
   function generateSrcset(photoId: number, widths: number[]): string {
-    const zone = 'https://static.billatkinson.us';
+    const zone = "https://static.billatkinson.us";
     const sourceImage = `srclg/srclg-${photoId}_Image.webp`;
     return widths
-      .map(width => `${zone}/cdn-cgi/image/width=${width}/${sourceImage} ${width}w`)
-      .join(', ');
+      .map(
+        (width) =>
+          `${zone}/cdn-cgi/image/width=${width}/${sourceImage} ${width}w`
+      )
+      .join(", ");
   }
 
   function masonryInit() {
-    if (!grid || typeof window === 'undefined') return;
+    if (!grid || typeof window === "undefined") return;
     imagesLoaded(grid, () => {
       msnry = new Masonry(grid, {
-        itemSelector: '.grid-item',
-        columnWidth: '.grid-item',
-        gutter: '.gutter-sizer',
+        itemSelector: ".grid-item",
+        columnWidth: ".grid-item",
+        gutter: ".gutter-sizer",
         percentPosition: true,
         transitionDuration: 0,
       });
@@ -57,13 +60,13 @@
     if (msnry) msnry.layout();
   }, 300);
 
-  document.addEventListener('lazyloaded', debouncedLayout);
+  document.addEventListener("lazyloaded", debouncedLayout);
 
   onDestroy(() => {
     if (msnry) {
       msnry.destroy();
     }
-    document.removeEventListener('lazyloaded', debouncedLayout);
+    document.removeEventListener("lazyloaded", debouncedLayout);
   });
 </script>
 
@@ -75,7 +78,11 @@
     <p>No photos available.</p>
   {/if}
   {#each photos as photo (photo.photo_id)}
-    <a href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`} class="grid-item" style="aspect-ratio: {photo.width} / {photo.height};">
+    <a
+      href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`}
+      class="grid-item"
+      style="aspect-ratio: {photo.width} / {photo.height};"
+    >
       <img
         data-srcset={generateSrcset(photo.photo_id, widths)}
         data-src={`https://static.billatkinson.us/srcsm/srcsm-${photo.photo_id}_Image.webp`}
@@ -86,7 +93,9 @@
     </a>
   {/each}
   {#if isLoading}
-    <div class="loading">Loading {hasMorePages ? 'more photos' : 'photos'}...</div>
+    <div class="loading">
+      Loading {hasMorePages ? "more photos" : "photos"}...
+    </div>
   {/if}
 </div>
 

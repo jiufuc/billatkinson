@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from 'svelte';
-  import { writable } from 'svelte/store';
-  import type { Photo, Pagination, AppState } from '$lib/types';
-  import { debounce, fetchPhotos } from '$lib/utils';
-  import PhotoGrid from '$lib/components/PhotoGrid.svelte';
+  import { onMount, afterUpdate } from "svelte";
+  import { writable } from "svelte/store";
+  import type { Photo, Pagination, AppState } from "$lib/types";
+  import { debounce, fetchPhotos } from "$lib/utils";
+  import PhotoGrid from "$lib/components/PhotoGrid.svelte";
 
   export let data: {
     photos: Photo[];
@@ -18,9 +18,9 @@
     hasMorePages: data.pagination.hasNext,
     isLoading: false,
     errorMessage: null,
-    searchQuery: '',
-    selectedCollection: 'All Collections',
-    selectedTag: 'All Tags'
+    searchQuery: "",
+    selectedCollection: "All Collections",
+    selectedTag: "All Tags",
   });
 
   let availableCollections = data.collections;
@@ -32,7 +32,9 @@
   const debouncedFilterChange = debounce(() => resetAndLoad(), 300);
 
   const debouncedLoadMore = debounce(() => {
-    loadMorePromise = loadMorePromise.then(() => fetchPhotosAndUpdate($applicationState.currentPage + 1));
+    loadMorePromise = loadMorePromise.then(() =>
+      fetchPhotosAndUpdate($applicationState.currentPage + 1)
+    );
   }, 300);
 
   function handleFilterChange() {
@@ -42,30 +44,34 @@
   async function fetchPhotosAndUpdate(page: number): Promise<void> {
     if ($applicationState.isLoading) return;
 
-    applicationState.update(state => ({ ...state, isLoading: true, errorMessage: null }));
+    applicationState.update((state) => ({
+      ...state,
+      isLoading: true,
+      errorMessage: null,
+    }));
     try {
       const { photos, pagination } = await fetchPhotos($applicationState, page);
-      applicationState.update(state => ({
+      applicationState.update((state) => ({
         ...state,
         photos: page === 1 ? photos : [...state.photos, ...photos],
         hasMorePages: pagination.hasNext,
         currentPage: page,
-        isLoading: false
+        isLoading: false,
       }));
     } catch (error) {
-      applicationState.update(state => ({
+      applicationState.update((state) => ({
         ...state,
         isLoading: false,
-        errorMessage: (error as Error).message
+        errorMessage: (error as Error).message,
       }));
     }
   }
 
   function resetAndLoad() {
-    applicationState.update(state => ({
+    applicationState.update((state) => ({
       ...state,
-      currentPage: 0, // Start at 0 so the first fetch is page 1
-      photos: []
+      currentPage: 0,
+      photos: [],
     }));
     fetchPhotosAndUpdate(1);
   }
@@ -74,7 +80,9 @@
     debouncedLoadMore();
   }
 
-  function createIntersectionObserver(callback: () => void): IntersectionObserver {
+  function createIntersectionObserver(
+    callback: () => void
+  ): IntersectionObserver {
     const rootMargin = `${Math.round(window.innerHeight * 0.9)}px`;
     return new IntersectionObserver(
       (entries) => {
@@ -99,15 +107,14 @@
       if (sentinel) observer.observe(sentinel);
     }, 200);
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   });
 
-  // Handle sentinel updates after DOM changes
   afterUpdate(() => {
     if (sentinel && $applicationState.hasMorePages) {
       observer.observe(sentinel);
