@@ -34,5 +34,4 @@ export interface AppState {
   searchQuery: string;
   selectedCollection: string;
   selectedTag: string;
-  prefetchedData: { photos: Photo[]; pagination: Pagination } | null; // Add this
 }
