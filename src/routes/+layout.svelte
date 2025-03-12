@@ -8,7 +8,7 @@
 <Subheader />
   <div class="wrap" role="document">
     <main class="main container-fluid">
-      {@render children()};
+      {@render children()}
     </main>
   </div>
 <Footer />

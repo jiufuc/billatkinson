@@ -62,10 +62,10 @@
 
   $: if (msnry && photos.length > 0) {
     (async () => {
-      await tick(); // Wait for the DOM changes to complete
+      await tick(); 
       imagesLoaded(grid, () => {
-        msnry.reloadItems(); // Update Masonry’s items
-        msnry.layout();      // Recalculate the layout
+        msnry.reloadItems(); 
+        msnry.layout(); 
       });
     })();
   }
@@ -143,7 +143,7 @@
     }
     .grid-item {
       margin-bottom: 3%;
-      width: 48.5%; /* Two columns on mobile */
+      width: 48.5%;
     }
   }
 
