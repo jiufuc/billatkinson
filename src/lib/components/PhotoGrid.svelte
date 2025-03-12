@@ -92,7 +92,7 @@
     <p>No photos available.</p>
   {/if}
   {#each photos as photo (photo.photo_id)}
-    <a href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`} class="grid-item">
+    <a href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`} class="grid-item" style="aspect-ratio: {photo.width} / {photo.height};">
       <img
         data-srcset={generateSrcset(photo.photo_id, widths)}
         data-src={`https://static.billatkinson.us/srcsm/srcsm-${photo.photo_id}_Image.webp`}

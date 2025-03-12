@@ -21,21 +21,20 @@
     errorMessage: null,
     searchQuery: '',
     selectedCollection: 'All Collections',
-    selectedTag: 'All Tags'
+    selectedTag: 'All Tags',
+    prefetchedData: null
   });
 
   let availableCollections = data.collections;
   let availableTags = data.tags;
   let sentinel: HTMLDivElement;
 
-  // Debounced filter change handler
   const debouncedFilterChange = debounce(() => resetAndLoad(), 300);
 
   function handleFilterChange() {
     debouncedFilterChange();
   }
 
-  // Load initial photos or reset after filter change
   async function loadInitial(): Promise<void> {
     applicationState.update(state => ({ ...state, isLoading: true }));
     try {
@@ -45,8 +44,12 @@
         photos,
         hasMorePages: pagination.hasNext,
         currentPage: 1,
-        isLoading: false
+        isLoading: false,
+        prefetchedData: null
       });
+      if (pagination.hasNext) {
+        prefetchNextPage();
+      }
     } catch (error) {
       applicationState.update(state => ({
         ...state,
@@ -56,26 +59,57 @@
     }
   }
 
-  // Load more photos for infinite scrolling
+  async function prefetchNextPage(): Promise<void> {
+    if ($applicationState.isLoading || !$applicationState.hasMorePages || $applicationState.prefetchedData) return;
+    const nextPage = $applicationState.currentPage + 1;
+    try {
+      const data = await fetchPhotos($applicationState, nextPage);
+      applicationState.update(state => ({
+        ...state,
+        prefetchedData: data
+      }));
+    } catch (error) {
+      console.error('Prefetch failed:', error);
+    }
+  }
+
   async function loadMorePhotos(): Promise<void> {
     if ($applicationState.isLoading || !$applicationState.hasMorePages) return;
-    const nextPage = $applicationState.currentPage + 1;
-    applicationState.update(state => ({ ...state, isLoading: true }));
-    try {
-      const { photos, pagination } = await fetchPhotos($applicationState, nextPage);
+
+    if ($applicationState.prefetchedData) {
+      const { photos, pagination } = $applicationState.prefetchedData;
       applicationState.update(state => ({
         ...state,
         photos: [...state.photos, ...photos],
         hasMorePages: pagination.hasNext,
-        currentPage: nextPage,
-        isLoading: false
+        currentPage: state.currentPage + 1,
+        prefetchedData: null
       }));
-    } catch (error) {
-      applicationState.update(state => ({
-        ...state,
-        errorMessage: (error as Error).message,
-        isLoading: false
-      }));
+      if (pagination.hasNext) {
+        prefetchNextPage();
+      }
+    } else {
+      const nextPage = $applicationState.currentPage + 1;
+      applicationState.update(state => ({ ...state, isLoading: true }));
+      try {
+        const { photos, pagination } = await fetchPhotos($applicationState, nextPage);
+        applicationState.update(state => ({
+          ...state,
+          photos: [...state.photos, ...photos],
+          hasMorePages: pagination.hasNext,
+          currentPage: nextPage,
+          isLoading: false
+        }));
+        if (pagination.hasNext) {
+          prefetchNextPage();
+        }
+      } catch (error) {
+        applicationState.update(state => ({
+          ...state,
+          errorMessage: (error as Error).message,
+          isLoading: false
+        }));
+      }
     }
   }
 
@@ -84,7 +118,8 @@
       ...state,
       currentPage: 1,
       hasMorePages: true,
-      photos: []
+      photos: [],
+      prefetchedData: null
     }));
     loadInitial();
   }
@@ -93,7 +128,6 @@
     loadMorePhotos();
   }
 
-  // Intersection Observer for infinite scrolling
   function createIntersectionObserver(callback: () => void): IntersectionObserver {
     return new IntersectionObserver(
       (entries) => {

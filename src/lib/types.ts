@@ -9,6 +9,8 @@ export interface Photo {
   camera: string | null;
   film_stock: string | null;
   film_format: string | null;
+  width: number;
+  height: number;
 }
 
 export interface Pagination {
@@ -32,4 +34,5 @@ export interface AppState {
   searchQuery: string;
   selectedCollection: string;
   selectedTag: string;
+  prefetchedData: { photos: Photo[]; pagination: Pagination } | null; // Add this
 }
