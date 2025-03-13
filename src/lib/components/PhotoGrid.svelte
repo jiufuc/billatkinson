@@ -6,12 +6,10 @@
   import type { Photo } from "$lib/types";
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
-  import 'photoswipe/style.css';
+  import "photoswipe/style.css";
+  import '../../app.css';
 
   export let photos: Photo[];
-  export let isLoading: boolean;
-  export let hasMorePages: boolean;
-  export let errorMessage: string | null;
 
   let grid: HTMLElement;
   let msnry: any;
@@ -54,6 +52,52 @@
           gallery: ".grid",
           children: "a.grid-item",
           pswpModule: () => import("photoswipe"),
+          showHideAnimationType: "zoom",
+          zoom: false,
+          counter: false,
+          bgOpacity: 1,
+          padding: { top: 77, bottom: 77, left: 25, right: 25 },
+          preload: [2, 5],
+        });
+        lightbox.on("uiRegister", function () {
+          lightbox.pswp.ui.registerElement({
+            name: "caption",
+            order: 9,
+            isButton: false,
+            appendTo: "root",
+            html: "Caption text",
+            onInit: (el: { innerHTML: string; }, pswp: any) => {
+              lightbox.pswp.on("change", () => {
+                const currSlideElement = lightbox.pswp.currSlide.data.element;
+                let captionHTML = "";
+                if (currSlideElement) {
+                  const hiddenCaption =
+                    currSlideElement.querySelector(".hidden-caption");
+                  if (hiddenCaption) {
+                    captionHTML = hiddenCaption.innerHTML;
+                  }
+                }
+                el.innerHTML = captionHTML || "";
+              });
+            },
+          });
+          lightbox.pswp.ui.registerElement({
+            name: "download-button",
+            order: 8,
+            isButton: true,
+            tagName: "a",
+            html: '<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="pswp__icn"><path d="M20.5 14.3 17.1 18V10h-2.2v7.9l-3.4-3.6L10 16l6 6.1 6-6.1ZM23 23H9v2h14Z" /></svg>',
+            onInit: (el: { setAttribute: (arg0: string, arg1: string) => void; }, pswp: { on: (arg0: string, arg1: () => void) => void; currSlide: { data: { src: any; }; }; }) => {
+              el.setAttribute("download", "");
+              el.setAttribute("target", "_blank");
+              el.setAttribute("rel", "noopener");
+      
+              pswp.on("change", () => {
+                console.log("change");
+                (el as any).href = pswp.currSlide.data.src;
+              });
+            },
+          });
         });
         lightbox.init();
         console.log("PhotoSwipe initiated");
@@ -91,11 +135,6 @@
 
 <div class="grid" bind:this={grid}>
   <div class="gutter-sizer"></div>
-  {#if errorMessage}
-    <p class="error">{errorMessage}</p>
-  {:else if photos.length === 0 && !isLoading}
-    <p>No photos available.</p>
-  {/if}
   {#each photos as photo (photo.photo_id)}
     <a
       href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`}
@@ -112,24 +151,33 @@
         alt={photo.photo_title}
         class="lazyload"
       />
+      <div class="hidden-caption">
+        <div class="caption-content">
+          <strong class="p-id">#{photo.photo_id}:</strong>
+          <strong class="p-title">{photo.photo_title}</strong>
+          <span class="p-dash">—</span>
+          <span class="p-location"><br class="sp">{photo.photo_location}</span>
+          <span class="p-year">({photo.photo_year})</span>
+        </div>
+      </div>
     </a>
   {/each}
-  {#if isLoading}
-    <div class="loading">
-      Loading {hasMorePages ? "more photos" : "photos"}...
-    </div>
-  {/if}
 </div>
 
 <style>
   .grid {
     width: 101.5%;
-    min-height: 100vh;
-    padding-bottom: 400px;
   }
 
   .gutter-sizer {
     width: 1.5%;
+  }
+  
+  .grid-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
   }
 
   .grid-item {
@@ -137,40 +185,19 @@
     margin-bottom: 1.5%;
   }
 
-  .grid-item img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
   @media (min-width: 768px) and (max-width: 1279px) {
-    .grid {
-      width: 100%;
-    }
     .grid-item {
-      width: 32.3%;
+      width: 31.83%;
     }
   }
 
   @media (max-width: 767px) {
-    .grid {
-      width: 100%;
-    }
     .grid-item {
-      margin-bottom: 3%;
       width: 48.5%;
     }
-  }
 
-  .loading {
-    text-align: center;
-    padding: 1rem;
-    font-style: italic;
-  }
-
-  .error {
-    color: red;
-    text-align: center;
-    padding: 1rem;
+    .p-dash {
+      display: none;
+    }
   }
 </style>

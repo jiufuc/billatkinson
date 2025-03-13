@@ -5,7 +5,6 @@
   import { debounce, fetchPhotos } from "$lib/utils";
   import type { Photo, Pagination, AppState } from "$lib/types";
   import PhotoGrid from "$lib/components/PhotoGrid.svelte";
-  import { page } from "$app/state";
 
   export let data: {
     photos: Photo[];
@@ -151,9 +150,6 @@
 
   <PhotoGrid
     photos={$applicationState.photos}
-    isLoading={$applicationState.isLoading}
-    hasMorePages={$applicationState.hasMorePages}
-    errorMessage={$applicationState.errorMessage}
   />
 
   {#if $applicationState.hasMorePages}
@@ -164,8 +160,6 @@
 <style>
   section {
     display: block;
-    min-height: 100vh;
-    padding-bottom: 400px;
   }
 
   .filters {
