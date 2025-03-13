@@ -5,8 +5,8 @@
   import { debounce } from "$lib/utils";
   import type { Photo } from "$lib/types";
   import "lazysizes";
-  import Masonry from "masonry-layout";
   import imagesLoaded from "imagesloaded";
+  import 'photoswipe/style.css';
 
   export let photos: Photo[];
   export let isLoading: boolean;
@@ -15,6 +15,7 @@
 
   let grid: HTMLElement;
   let msnry: any;
+  let lightbox: any;
   const photoCount = writable(0);
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
@@ -30,8 +31,14 @@
       .join(", ");
   }
 
-  function masonryInit() {
-    if (!grid || typeof window === "undefined") return;
+   async function initializeGallery() {
+    const Masonry = (await import("masonry-layout")).default;
+    const PhotoSwipeLightbox = (await import("photoswipe/lightbox")).default;
+
+    if (!grid) return;
+
+    await tick();
+
     imagesLoaded(grid, () => {
       msnry = new Masonry(grid, {
         itemSelector: ".grid-item",
@@ -41,11 +48,21 @@
         transitionDuration: 0,
       });
       msnry.layout();
+
+      if (!lightbox) {
+        lightbox = new PhotoSwipeLightbox({
+          gallery: ".grid",
+          children: "a.grid-item",
+          pswpModule: () => import("photoswipe"),
+        });
+        lightbox.init();
+        console.log("PhotoSwipe initiated");
+      }
     });
   }
 
   onMount(() => {
-    masonryInit();
+    initializeGallery();
   });
 
   $: if (msnry && photos.length !== $photoCount) {
@@ -61,14 +78,13 @@
 
   const debouncedLayout = debounce(() => {
     if (msnry) msnry.layout();
-  }, 300);
+  }, 200);
 
   document.addEventListener("lazyloaded", debouncedLayout);
 
   onDestroy(() => {
-    if (msnry) {
-      msnry.destroy();
-    }
+    if (msnry) msnry.destroy();
+    if (lightbox) lightbox.destroy();
     document.removeEventListener("lazyloaded", debouncedLayout);
   });
 </script>
@@ -83,8 +99,11 @@
   {#each photos as photo (photo.photo_id)}
     <a
       href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`}
-      class="grid-item"
+      target="_blank"
+      data-pswp-width={photo.width}
+      data-pswp-height={photo.height}
       style="aspect-ratio: {photo.width} / {photo.height};"
+      class="grid-item"
     >
       <img
         data-srcset={generateSrcset(photo.photo_id, widths)}

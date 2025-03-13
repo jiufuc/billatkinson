@@ -1,9 +1,11 @@
+<!-- src/lib/components/+page.svelte -->
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { writable } from "svelte/store";
   import { debounce, fetchPhotos } from "$lib/utils";
   import type { Photo, Pagination, AppState } from "$lib/types";
   import PhotoGrid from "$lib/components/PhotoGrid.svelte";
+  import { page } from "$app/state";
 
   export let data: {
     photos: Photo[];
