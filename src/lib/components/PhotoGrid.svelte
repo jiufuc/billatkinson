@@ -103,18 +103,29 @@
     initializeGallery();
 
     observer = new IntersectionObserver(
-      (entries, observer) => {
+      (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
-            observer.unobserve(entry.target); 
+            const img = entry.target.querySelector("img.lazyload");
+            if (img) {
+              img.addEventListener(
+                "lazyloaded",
+                () => {
+                  entry.target.classList.add("in-view");
+                },
+                { once: true }
+              );
+            } else {
+              entry.target.classList.add("in-view");
+            }
+            observer.unobserve(entry.target);
           }
         });
       },
       {
-        root: null, 
-        rootMargin: "0px", 
-        threshold: 0.1, 
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.1,
       }
     );
 
