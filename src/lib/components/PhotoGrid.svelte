@@ -1,8 +1,9 @@
 <!-- src/lib/components/PhotoGrid.svelte -->
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
-  import type { Photo } from "$lib/types";
+  import { writable } from 'svelte/store';
   import { debounce } from "$lib/utils";
+  import type { Photo } from "$lib/types";
   import "lazysizes";
   import Masonry from "masonry-layout";
   import imagesLoaded from "imagesloaded";
@@ -14,6 +15,7 @@
 
   let grid: HTMLElement;
   let msnry: any;
+  const photoCount = writable(0);
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
 
@@ -46,7 +48,8 @@
     masonryInit();
   });
 
-  $: if (msnry && photos.length > 0) {
+  $: if (msnry && photos.length !== $photoCount) {
+    photoCount.set(photos.length);
     (async () => {
       await tick();
       imagesLoaded(grid, () => {

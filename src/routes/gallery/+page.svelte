@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { writable } from "svelte/store";
-  import type { Photo, Pagination, AppState } from "$lib/types";
   import { debounce, fetchPhotos } from "$lib/utils";
+  import type { Photo, Pagination, AppState } from "$lib/types";
   import PhotoGrid from "$lib/components/PhotoGrid.svelte";
 
   export let data: {
@@ -41,39 +41,36 @@
     debouncedFilterChange();
   }
 
-  async function fetchPhotosAndUpdate(page: number): Promise<void> {
+  async function fetchPhotosAndUpdate(page: number, reset = false): Promise<void> {
     if ($applicationState.isLoading) return;
 
-    applicationState.update((state) => ({
+    applicationState.update(state => ({
       ...state,
       isLoading: true,
-      errorMessage: null,
+      errorMessage: null
     }));
+
     try {
       const { photos, pagination } = await fetchPhotos($applicationState, page);
-      applicationState.update((state) => ({
+
+      applicationState.update(state => ({
         ...state,
-        photos: page === 1 ? photos : [...state.photos, ...photos],
+        photos: reset ? photos : [...state.photos, ...photos], 
         hasMorePages: pagination.hasNext,
         currentPage: page,
-        isLoading: false,
+        isLoading: false
       }));
     } catch (error) {
-      applicationState.update((state) => ({
+      applicationState.update(state => ({
         ...state,
         isLoading: false,
-        errorMessage: (error as Error).message,
+        errorMessage: (error as Error).message
       }));
     }
   }
 
   function resetAndLoad() {
-    applicationState.update((state) => ({
-      ...state,
-      currentPage: 0,
-      photos: [],
-    }));
-    fetchPhotosAndUpdate(1);
+    fetchPhotosAndUpdate(1, true);
   }
 
   function loadMore() {
