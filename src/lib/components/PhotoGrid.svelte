@@ -7,7 +7,6 @@
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
   import "photoswipe/style.css";
-  import '../../app.css';
 
   export let photos: Photo[];
 
@@ -56,7 +55,7 @@
           zoom: false,
           counter: false,
           bgOpacity: 1,
-          padding: { top: 77, bottom: 77, left: 25, right: 25 },
+          padding: { top: 65, bottom: 65, left: 25, right: 25 },
           preload: [2, 5],
         });
         lightbox.on("uiRegister", function () {

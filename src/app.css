@@ -329,6 +329,12 @@ body {
   margin-top: -0.08rem;
 }
 
+@media (max-width: 383px) {
+  .pswp__button {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   .pswp__button--arrow {
     display: none;
