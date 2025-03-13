@@ -17,6 +17,7 @@
   const photoCount = writable(0);
   let cursor: HTMLDivElement;
   let images: NodeListOf<HTMLImageElement>;
+  let animationTimelines = new Map(); // Store timelines for cleanup
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
 
@@ -31,7 +32,7 @@
       .join(", ");
   }
 
-   async function initializeGallery() {
+  async function initializeGallery() {
     const Masonry = (await import("masonry-layout")).default;
     const PhotoSwipeLightbox = (await import("photoswipe/lightbox")).default;
 
@@ -102,38 +103,18 @@
     });
   }
 
-  onMount(() => {
-  initializeGallery();
-
-  observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const img = entry.target.querySelector("img.lazyload");
-        if (img) {
-          img.addEventListener(
-            "lazyloaded",
-            () => {
-              entry.target.classList.add("in-view");
-            },
-            { once: true }
-          );
-        } else {
-          entry.target.classList.add("in-view");
-        }
-        observer.unobserve(entry.target);
-      }
-    });
-  });
-
-  if (grid) {
-    const gridItems = grid.querySelectorAll(".grid-item");
-    gridItems.forEach((item) => observer.observe(item));
-
-    images = grid.querySelectorAll(".grid-item img"); 
+  // Function to initialize GSAP effects for images
+  function initializeImageEffects(images: NodeListOf<HTMLImageElement>) {
+    // Clean up existing animations
+    animationTimelines.forEach((tl) => tl.kill());
+    animationTimelines.clear();
 
     images.forEach((img) => {
-      let parent = img.closest(".grid-item");
-      let tl = gsap.timeline({ paused: true });
+      const parent = img.closest(".grid-item");
+      if (!parent) return;
+
+      const tl = gsap.timeline({ paused: true });
+      animationTimelines.set(img, tl);
 
       img.addEventListener("mouseenter", () => {
         tl.clear();
@@ -146,9 +127,9 @@
 
       img.addEventListener("mousemove", (e) => {
         if (!parent) return;
-        let bounds = parent.getBoundingClientRect();
-        let offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.1;
-        let offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.1;
+        const bounds = parent.getBoundingClientRect();
+        const offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.1;
+        const offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.1;
 
         gsap.to(img, {
           x: offsetX,
@@ -170,20 +151,53 @@
       });
     });
   }
-});
 
-  $: if (msnry && photos.length !== $photoCount) {
-    photoCount.set(photos.length);
-    (async () => {
-      await tick();
-      imagesLoaded(grid, () => {
-        msnry.reloadItems();
-        msnry.layout();
+  onMount(() => {
+    initializeGallery();
 
-        const gridItems = grid?.querySelectorAll(".grid-item");
-        if (gridItems) {
-          gridItems.forEach((item) => observer.observe(item));
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target.querySelector("img.lazyload");
+          if (img) {
+            img.addEventListener(
+              "lazyloaded",
+              () => {
+                entry.target.classList.add("in-view");
+              },
+              { once: true }
+            );
+          } else {
+            entry.target.classList.add("in-view");
+          }
+          observer.unobserve(entry.target);
         }
+      });
+    });
+
+    if (grid) {
+      const gridItems = grid.querySelectorAll(".grid-item");
+      gridItems.forEach((item) => observer.observe(item));
+    }
+  });
+
+  // Reactive statement to handle both Masonry and GSAP updates
+  $: if (grid && photos) {
+    (async () => {
+      await tick(); // Wait for DOM updates
+      imagesLoaded(grid, () => {
+        if (msnry) {
+          msnry.reloadItems();
+          msnry.layout();
+        }
+
+        // Update images and reapply GSAP effects
+        images = grid.querySelectorAll(".grid-item img");
+        initializeImageEffects(images);
+
+        // Update observer
+        const gridItems = grid.querySelectorAll(".grid-item");
+        gridItems.forEach((item) => observer.observe(item));
       });
     })();
   }
@@ -199,6 +213,8 @@
     if (lightbox) lightbox.destroy();
     if (observer) observer.disconnect();
     document.removeEventListener("lazyloaded", debouncedLayout);
+    animationTimelines.forEach((tl) => tl.kill());
+    animationTimelines.clear();
   });
 </script>
 
@@ -251,13 +267,13 @@
   }
 
   .grid-item {
-      width: 23.5%;
-      margin-bottom: 1.5%;
-      transition: all 0.5s ease-in-out; 
-      opacity: 0; 
-      transform: translateY(20%); 
-      overflow: hidden;
-    }
+    width: 23.5%;
+    margin-bottom: 1.5%;
+    transition: all 0.5s ease-in-out; 
+    opacity: 0; 
+    transform: translateY(20%); 
+    overflow: hidden;
+  }
 
   :global(.grid-item.in-view) {
     opacity: 1;
