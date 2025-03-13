@@ -6,6 +6,7 @@
   import type { Photo } from "$lib/types";
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
+  import gsap from "gsap";
 
   export let photos: Photo[];
 
@@ -14,6 +15,8 @@
   let lightbox: any;
   let observer: IntersectionObserver;
   const photoCount = writable(0);
+  let cursor: HTMLDivElement;
+  let images: NodeListOf<HTMLImageElement>;
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
 
@@ -100,40 +103,74 @@
   }
 
   onMount(() => {
-    initializeGallery();
+  initializeGallery();
 
-    observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const img = entry.target.querySelector("img.lazyload");
-            if (img) {
-              img.addEventListener(
-                "lazyloaded",
-                () => {
-                  entry.target.classList.add("in-view");
-                },
-                { once: true }
-              );
-            } else {
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target.querySelector("img.lazyload");
+        if (img) {
+          img.addEventListener(
+            "lazyloaded",
+            () => {
               entry.target.classList.add("in-view");
-            }
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        root: null,
-        rootMargin: "0px",
-        threshold: 0.1,
+            },
+            { once: true }
+          );
+        } else {
+          entry.target.classList.add("in-view");
+        }
+        observer.unobserve(entry.target);
       }
-    );
-
-    const gridItems = grid?.querySelectorAll(".grid-item");
-    if (gridItems) {
-      gridItems.forEach((item) => observer.observe(item));
-    }
+    });
   });
+
+  if (grid) {
+    const gridItems = grid.querySelectorAll(".grid-item");
+    gridItems.forEach((item) => observer.observe(item));
+
+    images = grid.querySelectorAll(".grid-item img"); 
+
+    images.forEach((img) => {
+      let parent = img.closest(".grid-item");
+      let tl = gsap.timeline({ paused: true });
+
+      img.addEventListener("mouseenter", () => {
+        tl.clear();
+        tl.to(img, {
+          scale: 1.1,
+          duration: 0.3,
+          ease: "power2.out",
+        }).play();
+      });
+
+      img.addEventListener("mousemove", (e) => {
+        if (!parent) return;
+        let bounds = parent.getBoundingClientRect();
+        let offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.1;
+        let offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.1;
+
+        gsap.to(img, {
+          x: offsetX,
+          y: offsetY,
+          duration: 0.1,
+          ease: "power2.out",
+        });
+      });
+
+      img.addEventListener("mouseleave", () => {
+        tl.clear();
+        gsap.to(img, {
+          scale: 1,
+          x: 0,
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out",
+        });
+      });
+    });
+  }
+});
 
   $: if (msnry && photos.length !== $photoCount) {
     photoCount.set(photos.length);
@@ -165,6 +202,7 @@
   });
 </script>
 
+<div bind:this={cursor} class="cursor"></div>
 <div class="grid" bind:this={grid}>
   <div class="gutter-sizer"></div>
   {#each photos as photo (photo.photo_id)}
@@ -218,6 +256,7 @@
       transition: all 0.5s ease-in-out; 
       opacity: 0; 
       transform: translateY(20%); 
+      overflow: hidden;
     }
 
   :global(.grid-item.in-view) {
@@ -239,5 +278,19 @@
     .p-dash {
       display: none;
     }
+  }
+
+  .cursor {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.5);
+    transition: opacity 0.2s ease-out;
+    opacity: 0;
+    z-index: 9999;
+    mix-blend-mode: difference;
   }
 </style>
