@@ -1,12 +1,10 @@
 <!-- src/lib/components/PhotoGrid.svelte -->
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
-  import { writable } from 'svelte/store';
   import { debounce } from "$lib/utils";
   import type { Photo } from "$lib/types";
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
-  import gsap from "gsap";
 
   export let photos: Photo[];
 
@@ -14,10 +12,8 @@
   let msnry: any;
   let lightbox: any;
   let observer: IntersectionObserver;
-  const photoCount = writable(0);
   let cursor: HTMLDivElement;
   let images: NodeListOf<HTMLImageElement>;
-  let animationTimelines = new Map(); // Store timelines for cleanup
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
 
@@ -103,54 +99,29 @@
     });
   }
 
-  // Function to initialize GSAP effects for images
-  function initializeImageEffects(images: NodeListOf<HTMLImageElement>) {
-    // Clean up existing animations
-    animationTimelines.forEach((tl) => tl.kill());
-    animationTimelines.clear();
+ function initializeHover(images: NodeListOf<HTMLImageElement>) {
+  images.forEach((img) => {
+    const parent = img.closest(".grid-item");
+    if (!parent) return;
 
-    images.forEach((img) => {
-      const parent = img.closest(".grid-item");
-      if (!parent) return;
-
-      const tl = gsap.timeline({ paused: true });
-      animationTimelines.set(img, tl);
-
-      img.addEventListener("mouseenter", () => {
-        tl.clear();
-        tl.to(img, {
-          scale: 1.1,
-          duration: 0.3,
-          ease: "power2.out",
-        }).play();
-      });
-
-      img.addEventListener("mousemove", (e) => {
-        if (!parent) return;
-        const bounds = parent.getBoundingClientRect();
-        const offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.1;
-        const offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.1;
-
-        gsap.to(img, {
-          x: offsetX,
-          y: offsetY,
-          duration: 0.1,
-          ease: "power2.out",
-        });
-      });
-
-      img.addEventListener("mouseleave", () => {
-        tl.clear();
-        gsap.to(img, {
-          scale: 1,
-          x: 0,
-          y: 0,
-          duration: 0.3,
-          ease: "power2.out",
-        });
-      });
+    parent.addEventListener("mouseenter", () => {
+      img.style.transition = 'transform 0.3s ease-out';
+      img.style.transform = 'scale(1.05)';
     });
-  }
+
+    (parent as HTMLElement).addEventListener("mousemove", (e: MouseEvent) => {
+      const bounds = parent.getBoundingClientRect();
+      const offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.05;
+      const offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.05;
+      img.style.transform = `scale(1.05) translate(${offsetX}px, ${offsetY}px)`;
+    });
+
+    parent.addEventListener("mouseleave", () => {
+      img.style.transition = 'transform 0.3s ease-out';
+      img.style.transform = "scale(1)";
+    });
+  });
+}
 
   onMount(() => {
     initializeGallery();
@@ -181,21 +152,18 @@
     }
   });
 
-  // Reactive statement to handle both Masonry and GSAP updates
   $: if (grid && photos) {
     (async () => {
-      await tick(); // Wait for DOM updates
+      await tick(); 
       imagesLoaded(grid, () => {
         if (msnry) {
           msnry.reloadItems();
           msnry.layout();
         }
 
-        // Update images and reapply GSAP effects
         images = grid.querySelectorAll(".grid-item img");
-        initializeImageEffects(images);
+        initializeHover(images);
 
-        // Update observer
         const gridItems = grid.querySelectorAll(".grid-item");
         gridItems.forEach((item) => observer.observe(item));
       });
@@ -213,12 +181,9 @@
     if (lightbox) lightbox.destroy();
     if (observer) observer.disconnect();
     document.removeEventListener("lazyloaded", debouncedLayout);
-    animationTimelines.forEach((tl) => tl.kill());
-    animationTimelines.clear();
   });
 </script>
 
-<div bind:this={cursor} class="cursor"></div>
 <div class="grid" bind:this={grid}>
   <div class="gutter-sizer"></div>
   {#each photos as photo (photo.photo_id)}
@@ -264,12 +229,14 @@
     width: 100%;
     height: auto;
     object-fit: cover;
+    transform-origin: center;
   }
 
   .grid-item {
     width: 23.5%;
     margin-bottom: 1.5%;
     transition: all 0.5s ease-in-out; 
+    will-change: transform, opacity, scale;
     opacity: 0; 
     transform: translateY(20%); 
     overflow: hidden;
@@ -294,19 +261,5 @@
     .p-dash {
       display: none;
     }
-  }
-
-  .cursor {
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: translate(-50%, -50%) scale(0.5);
-    transition: opacity 0.2s ease-out;
-    opacity: 0;
-    z-index: 9999;
-    mix-blend-mode: difference;
   }
 </style>
