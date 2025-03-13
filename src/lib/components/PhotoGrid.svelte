@@ -12,6 +12,7 @@
   let grid: HTMLElement;
   let msnry: any;
   let lightbox: any;
+  let observer: IntersectionObserver;
   const photoCount = writable(0);
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
@@ -50,7 +51,6 @@
           gallery: ".grid",
           children: "a.grid-item",
           pswpModule: () => import("photoswipe"),
-          showHideAnimationType: "zoom",
           zoom: false,
           counter: false,
           bgOpacity: 1,
@@ -60,7 +60,6 @@
         lightbox.on("uiRegister", function () {
           lightbox.pswp.ui.registerElement({
             name: "caption",
-            order: 9,
             isButton: false,
             appendTo: "root",
             html: "Caption text",
@@ -81,7 +80,6 @@
           });
           lightbox.pswp.ui.registerElement({
             name: "download-button",
-            order: 8,
             isButton: true,
             tagName: "a",
             html: '<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="pswp__icn"><path d="M20.5 14.3 17.1 18V10h-2.2v7.9l-3.4-3.6L10 16l6 6.1 6-6.1ZM23 23H9v2h14Z" /></svg>',
@@ -89,7 +87,6 @@
               el.setAttribute("download", "");
               el.setAttribute("target", "_blank");
               el.setAttribute("rel", "noopener");
-      
               pswp.on("change", () => {
                 console.log("change");
                 (el as any).href = pswp.currSlide.data.src;
@@ -98,13 +95,33 @@
           });
         });
         lightbox.init();
-        console.log("PhotoSwipe initiated");
       }
     });
   }
 
   onMount(() => {
     initializeGallery();
+
+    observer = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            observer.unobserve(entry.target); 
+          }
+        });
+      },
+      {
+        root: null, 
+        rootMargin: "0px", 
+        threshold: 0.1, 
+      }
+    );
+
+    const gridItems = grid?.querySelectorAll(".grid-item");
+    if (gridItems) {
+      gridItems.forEach((item) => observer.observe(item));
+    }
   });
 
   $: if (msnry && photos.length !== $photoCount) {
@@ -114,6 +131,11 @@
       imagesLoaded(grid, () => {
         msnry.reloadItems();
         msnry.layout();
+
+        const gridItems = grid?.querySelectorAll(".grid-item");
+        if (gridItems) {
+          gridItems.forEach((item) => observer.observe(item));
+        }
       });
     })();
   }
@@ -127,6 +149,7 @@
   onDestroy(() => {
     if (msnry) msnry.destroy();
     if (lightbox) lightbox.destroy();
+    if (observer) observer.disconnect();
     document.removeEventListener("lazyloaded", debouncedLayout);
   });
 </script>
@@ -179,8 +202,16 @@
   }
 
   .grid-item {
-    width: 23.5%;
-    margin-bottom: 1.5%;
+      width: 23.5%;
+      margin-bottom: 1.5%;
+      transition: all 0.5s ease-in-out; 
+      opacity: 0; 
+      transform: translateY(20%); 
+    }
+
+  :global(.grid-item.in-view) {
+    opacity: 1;
+    transform: translateY(0); 
   }
 
   @media (min-width: 768px) and (max-width: 1279px) {

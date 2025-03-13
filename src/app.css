@@ -233,12 +233,6 @@ body {
   }
 }
 
-@media (max-width: 767px) {
-  .wrap {
-    margin-top: 1em;
-  }
-}
-
 .lazyload {
   opacity: 0;
 }

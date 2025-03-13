@@ -164,13 +164,14 @@
 
   .filters {
     display: flex;
-    margin-left: -1rem;
     padding: 1rem;
-    gap: 1rem;
+    gap: 2rem;
+    border-top: 0.1rem solid #999;
   }
 
   input,
   select {
+    margin-left: -1rem;
     padding: 0.3rem;
     border: 1px solid #ccc;
   }
