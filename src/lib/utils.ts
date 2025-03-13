@@ -15,6 +15,32 @@ export function debounce<T extends (...args: any[]) => void>(func: T, wait: numb
   };
 }
 
+export function throttle<T extends (...args: any[]) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+    let timeoutId: number | undefined;
+    let lastExecTime = 0;
+
+    return function(this: any, ...args: Parameters<T>) {
+        const currentTime = Date.now();
+        const timeSinceLastExec = currentTime - lastExecTime;
+
+        if (!timeoutId) {
+            func.apply(this, args);
+            lastExecTime = currentTime;
+        } else if (timeSinceLastExec >= delay) {
+            clearTimeout(timeoutId);
+            timeoutId = undefined;
+            func.apply(this, args);
+            lastExecTime = currentTime;
+        } else if (!timeoutId) {
+            timeoutId = setTimeout(() => {
+                timeoutId = undefined;
+                func.apply(this, args);
+                lastExecTime = Date.now();
+            }, delay - timeSinceLastExec);
+        }
+    };
+}
+
 export function buildQueryParams(state: AppState, pageNumber: number): URLSearchParams {
   return new URLSearchParams({
     page: pageNumber.toString(),

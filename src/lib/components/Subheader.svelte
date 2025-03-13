@@ -143,9 +143,7 @@
     opacity: 0;
     padding: 0 0.15em;
     transform: translateX(20px);
-    transition:
-      opacity 0.3s ease,
-      transform 0.3s ease;
+    transition: all 0.3s ease-in;
   }
 
   :global(.site-subheader.sticky-active) .mini-logo__a {

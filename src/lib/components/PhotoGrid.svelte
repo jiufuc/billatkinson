@@ -1,7 +1,7 @@
 <!-- src/lib/components/PhotoGrid.svelte -->
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
-  import { debounce } from "$lib/utils";
+  import { debounce, throttle } from "$lib/utils";
   import type { Photo } from "$lib/types";
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
@@ -99,29 +99,31 @@
     });
   }
 
- function initializeHover(images: NodeListOf<HTMLImageElement>) {
-  images.forEach((img) => {
-    const parent = img.closest(".grid-item");
-    if (!parent) return;
+  function initializeHover(images: NodeListOf<HTMLImageElement>) {
+    images.forEach((img) => {
+      const parent = img.closest(".grid-item");
+      if (!parent) return;
 
-    parent.addEventListener("mouseenter", () => {
-      img.style.transition = 'transform 0.3s ease-out';
-      img.style.transform = 'scale(1.05)';
-    });
+      parent.addEventListener("mouseenter", () => {
+        img.style.transition = 'transform 0.3s ease-out';
+        img.style.transform = 'scale(1.05)';
+      });
 
-    (parent as HTMLElement).addEventListener("mousemove", (e: MouseEvent) => {
-      const bounds = parent.getBoundingClientRect();
-      const offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.05;
-      const offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.05;
-      img.style.transform = `scale(1.05) translate(${offsetX}px, ${offsetY}px)`;
-    });
+      (parent as HTMLElement).addEventListener("mousemove", throttle((e: MouseEvent) => {
+        const bounds = parent.getBoundingClientRect();
+        const offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.05;
+        const offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.05;
+        requestAnimationFrame(() => { 
+          img.style.transform = `scale(1.05) translate(${offsetX}px, ${offsetY}px)`;
+        });
+      }, 16));
 
-    parent.addEventListener("mouseleave", () => {
-      img.style.transition = 'transform 0.3s ease-out';
-      img.style.transform = "scale(1)";
+      parent.addEventListener("mouseleave", () => {
+        img.style.transition = 'transform 0.5s ease-out';
+        img.style.transform = "scale(1)";
+      });
     });
-  });
-}
+  }
 
   onMount(() => {
     initializeGallery();
@@ -217,11 +219,11 @@
 
 <style>
   .grid {
-    width: 101.5%;
+    width: 100%;
   }
 
   .gutter-sizer {
-    width: 1.5%;
+    width: 1%;
   }
   
   .grid-item img {
@@ -233,9 +235,9 @@
   }
 
   .grid-item {
-    width: 23.5%;
-    margin-bottom: 1.5%;
-    transition: all 0.5s ease-in-out; 
+    width: 24.25%;
+    margin-bottom: 1%;
+    transition: all 0.7s ease-in-out; 
     will-change: transform, opacity, scale;
     opacity: 0; 
     transform: translateY(20%); 
@@ -249,13 +251,13 @@
 
   @media (min-width: 768px) and (max-width: 1279px) {
     .grid-item {
-      width: 31.83%;
+      width: 32.66%;
     }
   }
 
   @media (max-width: 767px) {
     .grid-item {
-      width: 48.5%;
+      width: 49.5%;
     }
 
     .p-dash {
