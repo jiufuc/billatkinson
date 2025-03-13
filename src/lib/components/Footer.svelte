@@ -1,16 +1,12 @@
 <script lang="ts">
-  // Define type for menu items
-  type FooterLink = {
-    title: string;
-    href: string;
-    target?: "_blank" | "_self";
-  };
+  import type { FooterLink } from "$lib/types";
 
-  // Footer navigation links
   const footerLinks: FooterLink[] = [
-    { title: "Legacy Site", href: "/", target: "_blank" },
+    { title: "Legacy Site", href: "/" },
     { title: "To Top", href: "#top" }
   ];
+
+  const currentYear = new Date().getFullYear();
 </script>
 
 <footer class="site-footer container-fluid">
@@ -22,7 +18,7 @@
 
   <div class="site-footer__cph flex flex-wrap md:items-center md:justify-between">
     <div class="site-footer__copy order-2 md:order-0 mb-2 md:mb-0">
-      2025 © Bill Atkinson
+      {currentYear} © Bill Atkinson
     </div>
     <ul id="menu-footer-links" class="flex md:justify-end order-1 mb-2 md:mb-0">
       {#each footerLinks as link, i}
@@ -64,10 +60,6 @@
   @media (max-width: 767px) {
     .site-footer__cph > * {
       flex: 0 0 100%;
-    }
-
-    .site-footer__cph .nav {
-      margin-left: -0.6em;
     }
   }
 

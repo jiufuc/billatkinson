@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "photoswipe/style.css";
 
 @font-face {
   font-family: "Agipo";

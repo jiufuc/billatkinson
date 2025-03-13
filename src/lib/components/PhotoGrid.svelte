@@ -6,7 +6,6 @@
   import type { Photo } from "$lib/types";
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
-  import "photoswipe/style.css";
 
   export let photos: Photo[];
 

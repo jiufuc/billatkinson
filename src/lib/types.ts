@@ -35,3 +35,9 @@ export interface AppState {
   selectedCollection: string;
   selectedTag: string;
 }
+
+export interface FooterLink {
+  title: string;
+  href: string;
+  target?: "_blank" | "_self";
+}

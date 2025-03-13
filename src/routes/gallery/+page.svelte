@@ -126,7 +126,7 @@
   <div class="filters">
     <input
       type="text"
-      placeholder="Search photos..."
+      placeholder="Search keywords..."
       bind:value={$applicationState.searchQuery}
       on:input={handleFilterChange}
     />
@@ -164,18 +164,14 @@
 
   .filters {
     display: flex;
-    gap: 1rem;
+    margin-left: -1rem;
     padding: 1rem;
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 10;
+    gap: 1rem;
   }
 
   input,
   select {
-    padding: 0.5rem;
+    padding: 0.3rem;
     border: 1px solid #ccc;
-    border-radius: 4px;
   }
 </style>
