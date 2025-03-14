@@ -12,8 +12,6 @@
   let msnry: any;
   let lightbox: any;
   let observer: IntersectionObserver;
-  let cursor: HTMLDivElement;
-  let images: NodeListOf<HTMLImageElement>;
 
   const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
 
@@ -51,8 +49,6 @@
           gallery: ".grid",
           children: "a.grid-item",
           pswpModule: () => import("photoswipe"),
-          zoom: false,
-          counter: false,
           bgOpacity: 1,
           padding: { top: 65, bottom: 65, left: 25, right: 25 },
           preload: [2, 5],
@@ -99,29 +95,45 @@
     });
   }
 
-  function initializeHover(images: NodeListOf<HTMLImageElement>) {
-    images.forEach((img) => {
-      const parent = img.closest(".grid-item");
-      if (!parent) return;
+  function initializeHover(grid: HTMLElement) {
+    let currentItem: HTMLElement | null = null;
 
-      parent.addEventListener("mouseenter", () => {
-        img.style.transition = 'transform 0.3s ease-out';
-        img.style.transform = 'scale(1.05)';
-      });
+    const handleMouseEnter = (e: MouseEvent) => {
+      currentItem = e.currentTarget as HTMLElement;
+      const img = currentItem.querySelector("img");
+      if (img) {
+        img.classList.add("scaled");
+      }
+    };
 
-      (parent as HTMLElement).addEventListener("mousemove", throttle((e: MouseEvent) => {
-        const bounds = parent.getBoundingClientRect();
+    const handleMouseMove = throttle((e: MouseEvent) => {
+      if (!currentItem) return;
+      const img = currentItem.querySelector("img");
+      if (img) {
+        const bounds = currentItem.getBoundingClientRect();
         const offsetX = (e.clientX - bounds.left - bounds.width / 2) * 0.05;
         const offsetY = (e.clientY - bounds.top - bounds.height / 2) * 0.05;
-        requestAnimationFrame(() => { 
+        requestAnimationFrame(() => {
           img.style.transform = `scale(1.05) translate(${offsetX}px, ${offsetY}px)`;
         });
-      }, 16));
+      }
+    }, 16);
 
-      parent.addEventListener("mouseleave", () => {
-        img.style.transition = 'transform 0.5s ease-out';
-        img.style.transform = "scale(1)";
-      });
+    const handleMouseLeave = () => {
+      if (currentItem) {
+        const img = currentItem.querySelector("img");
+        if (img) {
+          img.classList.remove("scaled");
+          img.style.transform = "scale(1)";
+        }
+        currentItem = null;
+      }
+    };
+
+    grid.querySelectorAll(".grid-item").forEach((item) => {
+      item.addEventListener("mouseenter", handleMouseEnter as EventListener);
+      item.addEventListener("mousemove", handleMouseMove as EventListener);
+      item.addEventListener("mouseleave", handleMouseLeave as EventListener);
     });
   }
 
@@ -156,16 +168,13 @@
 
   $: if (grid && photos) {
     (async () => {
-      await tick(); 
+      await tick();
       imagesLoaded(grid, () => {
         if (msnry) {
           msnry.reloadItems();
           msnry.layout();
         }
-
-        images = grid.querySelectorAll(".grid-item img");
-        initializeHover(images);
-
+        initializeHover(grid); 
         const gridItems = grid.querySelectorAll(".grid-item");
         gridItems.forEach((item) => observer.observe(item));
       });
@@ -232,13 +241,18 @@
     height: auto;
     object-fit: cover;
     transform-origin: center;
+    transition: transform 0.3s ease-out; 
+  }
+
+  :global(.grid-item img.scaled) {
+    transform: scale(1.05); 
   }
 
   .grid-item {
     width: 24.25%;
     margin-bottom: 1%;
-    transition: all 0.7s ease-in-out; 
-    will-change: transform, opacity, scale;
+    transition: transform 0.7s ease-in-out, opacity 0.7s ease-in-out; 
+    will-change: transform, opacity;
     opacity: 0; 
     transform: translateY(20%); 
     overflow: hidden;
