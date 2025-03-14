@@ -17,6 +17,8 @@
 
   $: currentPath = $page.url.pathname;
 
+  let isSticky = false;
+
   onMount(() => {
     const sentinel = document.getElementById("sticky-sentinel");
     const subheader = document.querySelector(".site-subheader");
@@ -25,7 +27,9 @@
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            if (entry.intersectionRatio < 1) {
+            const shouldBeSticky = entry.intersectionRatio < 1;
+            isSticky = shouldBeSticky;
+            if (shouldBeSticky) {
               subheader.classList.add("sticky-active");
             } else {
               subheader.classList.remove("sticky-active");
@@ -38,6 +42,10 @@
       observer.observe(sentinel);
     }
   });
+
+  function topFunction() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 </script>
 
 <div id="sticky-sentinel"></div>
@@ -62,10 +70,13 @@
     </ul>
   </nav>
   <a href="/" class="mini-logo">
-    <div class="mini-logo__a">B</div>
-    <div class="mini-logo__d">—</div>
-    <div class="mini-logo__s">A</div>
+    <div class="mini-logo__a">Bill</div>
+    <div class="mini-logo__d">Atkinson</div>
+    <div class="mini-logo__s">Photography</div>
   </a>
+  <button on:click={topFunction} id="toTop" title="Go to top" class:show={isSticky}>
+    Top
+  </button>
 </div>
 
 <style>
@@ -124,7 +135,34 @@
     visibility: visible;
     opacity: 1;
     display: flex;
-    font-size: 23px;
+    font-size: 22px;
+    gap: 0.5rem;
+  }
+
+  #toTop {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 99;
+    background-color: rgba(125, 125, 125, 0.85);
+    color: white;
+    cursor: pointer;
+    padding: 25px;
+    border-radius: 50%;
+    font-size: 18px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+  }
+
+  #toTop.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s 0s, background-color 0.3s ease;
+  }
+
+  #toTop:hover {
+    background-color: rgba(155, 155, 155, 1);
   }
 
   @media (max-width: 383px) {
@@ -141,8 +179,7 @@
 
   .mini-logo > div {
     opacity: 0;
-    padding: 0 0.15em;
-    transform: translateX(20px);
+    transform: translateX(3rem);
     transition: all 0.3s ease-in;
   }
 
@@ -163,7 +200,7 @@
     transform: translateX(0);
     transition-delay: 0.3s;
   }
-  
+
   #sticky-sentinel {
     height: 1px;
     width: 100%;

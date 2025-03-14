@@ -12,8 +12,8 @@
 <footer class="site-footer container-fluid">
   <div class="site-footer__brand b-hero">
     <div class="b-hero__l">Bill</div>
-    <div class="b-hero__m">&mdash;</div>
-    <div class="b-hero__r">Atkinson</div>
+    <div class="b-hero__m">Atkinson</div>
+    <div class="b-hero__r">Photography</div>
   </div>
 
   <div class="site-footer__cph flex flex-wrap md:items-center md:justify-between">

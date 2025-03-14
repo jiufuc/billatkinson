@@ -1,8 +1,8 @@
 <div class="site-header container-fluid">
   <a href="/" class="site-header__brand b-hero">
     <div class="b-hero__l">Bill</div>
-    <div class="b-hero__m">&mdash;</div>
-    <div class="b-hero__r">Atkinson</div>
+    <div class="b-hero__m">Atkinson</div>
+    <div class="b-hero__r">Photography</div>
   </a>
 </div>
 

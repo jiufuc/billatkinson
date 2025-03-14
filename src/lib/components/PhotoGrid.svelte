@@ -46,9 +46,11 @@
 
       if (!lightbox) {
         lightbox = new PhotoSwipeLightbox({
+          pswpModule: () => import("photoswipe"),
           gallery: ".grid",
           children: "a.grid-item",
-          pswpModule: () => import("photoswipe"),
+          initialZoomLevel: "fit",
+          secondaryZoomLevel: "fill",
           bgOpacity: 1,
           padding: { top: 65, bottom: 65, left: 25, right: 25 },
           preload: [2, 5],
@@ -59,7 +61,7 @@
             isButton: false,
             appendTo: "root",
             html: "Caption text",
-            onInit: (el: { innerHTML: string; }, pswp: any) => {
+            onInit: (el: { innerHTML: string }, pswp: any) => {
               lightbox.pswp.on("change", () => {
                 const currSlideElement = lightbox.pswp.currSlide.data.element;
                 let captionHTML = "";
@@ -79,13 +81,21 @@
             isButton: true,
             tagName: "a",
             html: '<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" class="pswp__icn"><path d="M20.5 14.3 17.1 18V10h-2.2v7.9l-3.4-3.6L10 16l6 6.1 6-6.1ZM23 23H9v2h14Z" /></svg>',
-            onInit: (el: { setAttribute: (arg0: string, arg1: string) => void; }, pswp: { on: (arg0: string, arg1: () => void) => void; currSlide: { data: { src: any; }; }; }) => {
+            onInit: (
+              el: HTMLAnchorElement,
+              pswp: {
+                on: (arg0: string, arg1: () => void) => void;
+                currSlide: { data: { element: any } };
+              }
+            ) => {
               el.setAttribute("download", "");
               el.setAttribute("target", "_blank");
               el.setAttribute("rel", "noopener");
               pswp.on("change", () => {
-                console.log("change");
-                (el as any).href = pswp.currSlide.data.src;
+                const anchor = pswp.currSlide.data.element;
+                if (anchor && anchor instanceof HTMLAnchorElement) {
+                  (el as HTMLAnchorElement).href = anchor.href;
+                }
               });
             },
           });
@@ -174,7 +184,7 @@
           msnry.reloadItems();
           msnry.layout();
         }
-        initializeHover(grid); 
+        initializeHover(grid);
         const gridItems = grid.querySelectorAll(".grid-item");
         gridItems.forEach((item) => observer.observe(item));
       });
@@ -199,8 +209,8 @@
   <div class="gutter-sizer"></div>
   {#each photos as photo (photo.photo_id)}
     <a
-      href={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`}
-      target="_blank"
+      href={`https://static.billatkinson.us/src/src-${photo.photo_id}_Image.jpg`}
+      data-pswp-src={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`}
       data-pswp-width={photo.width}
       data-pswp-height={photo.height}
       style="aspect-ratio: {photo.width} / {photo.height};"
@@ -218,7 +228,8 @@
           <strong class="p-id">#{photo.photo_id}:</strong>
           <strong class="p-title">{photo.photo_title}</strong>
           <span class="p-dash">—</span>
-          <span class="p-location"><br class="sp">{photo.photo_location}</span>
+          <span class="p-location"><br class="sp" />{photo.photo_location}</span
+          >
           <span class="p-year">({photo.photo_year})</span>
         </div>
       </div>
@@ -234,33 +245,35 @@
   .gutter-sizer {
     width: 1%;
   }
-  
+
   .grid-item img {
     display: block;
     width: 100%;
     height: auto;
     object-fit: cover;
     transform-origin: center;
-    transition: transform 0.3s ease-out; 
+    transition: transform 0.3s ease-out;
   }
 
   :global(.grid-item img.scaled) {
-    transform: scale(1.05); 
+    transform: scale(1.05);
   }
 
   .grid-item {
     width: 24.25%;
     margin-bottom: 1%;
-    transition: transform 0.7s ease-in-out, opacity 0.7s ease-in-out; 
+    transition:
+      transform 0.6s ease-in-out,
+      opacity 0.6s ease-in-out;
     will-change: transform, opacity;
-    opacity: 0; 
-    transform: translateY(20%); 
+    opacity: 0;
+    transform: translateY(20%);
     overflow: hidden;
   }
 
   :global(.grid-item.in-view) {
     opacity: 1;
-    transform: translateY(0); 
+    transform: translateY(0);
   }
 
   @media (min-width: 768px) and (max-width: 1279px) {
