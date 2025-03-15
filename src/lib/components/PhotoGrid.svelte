@@ -13,11 +13,11 @@
   let lightbox: any;
   let observer: IntersectionObserver;
 
-  const widths: number[] = [320, 480, 640, 720, 880, 1120, 1340, 1800, 2240];
+  const widths: number[] = [320, 480, 640, 720, 880, 1024];
 
   function generateSrcset(photoId: number, widths: number[]): string {
     const zone = "https://static.billatkinson.us";
-    const sourceImage = `srclg/srclg-${photoId}_Image.webp`;
+    const sourceImage = `srcsm/srcsm-${photoId}_Image.webp`;
     return widths
       .map(
         (width) =>

@@ -1,8 +1,9 @@
 import adapter from '@sveltejs/adapter-cloudflare';
 import path from "path";
+import { preprocessMeltUI, sequence } from '@melt-ui/pp'
 
-export default {
-	kit: {
+const config = {
+  kit: {
 		adapter: adapter({
 			routes: {
 				include: ['/*'],
@@ -17,5 +18,10 @@ export default {
     alias: {
       $lib: path.resolve("./src/lib"),
     },
-	}
+	},
+  preprocess: sequence([
+    preprocessMeltUI() 
+  ])
 };
+
+export default config;

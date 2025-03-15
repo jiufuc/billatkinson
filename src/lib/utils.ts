@@ -57,3 +57,7 @@ export async function fetchPhotos(state: AppState, pageNumber: number): Promise<
   if (!response.ok) throw new Error('Failed to fetch more photos');
   return response.json();
 }
+
+export function cn(...inputs: (string | undefined | null | boolean)[]): string {
+  return inputs.filter(Boolean).join(" ");
+}

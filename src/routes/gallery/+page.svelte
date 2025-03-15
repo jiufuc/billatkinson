@@ -1,17 +1,18 @@
-<!-- src/lib/components/+page.svelte -->
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import { debounce, fetchPhotos } from "$lib/utils";
   import type { Photo, Pagination, AppState } from "$lib/types";
   import PhotoGrid from "$lib/components/PhotoGrid.svelte";
 
-  export let data: {
-    photos: Photo[];
-    pagination: Pagination;
-    collections: string[];
-    tags: string[];
-  };
+  const { data } = $props<{
+    data: {
+      photos: Photo[];
+      pagination: Pagination;
+      collections: string[];
+      tags: string[];
+    };
+  }>();
 
   const applicationState = writable<AppState>({
     photos: data.photos,
@@ -26,9 +27,10 @@
 
   let availableCollections = data.collections;
   let availableTags = data.tags;
-  let sentinel: HTMLDivElement;
   let loadMorePromise = Promise.resolve();
   let observer: IntersectionObserver;
+  let sentinel: HTMLDivElement | null = $state(null);
+  let screenWidth = $state(0);
 
   const debouncedFilterChange = debounce(() => resetAndLoad(), 300);
 
@@ -42,30 +44,33 @@
     debouncedFilterChange();
   }
 
-  async function fetchPhotosAndUpdate(page: number, reset = false): Promise<void> {
+  async function fetchPhotosAndUpdate(
+    page: number,
+    reset = false
+  ): Promise<void> {
     if ($applicationState.isLoading) return;
 
-    applicationState.update(state => ({
+    applicationState.update((state) => ({
       ...state,
       isLoading: true,
-      errorMessage: null
+      errorMessage: null,
     }));
 
     try {
       const { photos, pagination } = await fetchPhotos($applicationState, page);
 
-      applicationState.update(state => ({
+      applicationState.update((state) => ({
         ...state,
-        photos: reset ? photos : [...state.photos, ...photos], 
+        photos: reset ? photos : [...state.photos, ...photos],
         hasMorePages: pagination.hasNext,
         currentPage: page,
-        isLoading: false
+        isLoading: false,
       }));
     } catch (error) {
-      applicationState.update(state => ({
+      applicationState.update((state) => ({
         ...state,
         isLoading: false,
-        errorMessage: (error as Error).message
+        errorMessage: (error as Error).message,
       }));
     }
   }
@@ -103,9 +108,11 @@
       observer.disconnect();
       observer = createIntersectionObserver(loadMore);
       if (sentinel) observer.observe(sentinel);
+      screenWidth = window.innerWidth;
     }, 200);
 
     window.addEventListener("resize", handleResize);
+    screenWidth = window.innerWidth;
 
     return () => {
       observer.disconnect();
@@ -113,11 +120,13 @@
     };
   });
 
-  afterUpdate(() => {
-    if (sentinel && $applicationState.hasMorePages) {
-      observer.observe(sentinel);
-    } else if (sentinel) {
-      observer.unobserve(sentinel);
+  $effect(() => {
+    if (observer && sentinel) {
+      if ($applicationState.hasMorePages) {
+        observer.observe(sentinel);
+      } else {
+        observer.unobserve(sentinel);
+      }
     }
   });
 </script>
@@ -128,11 +137,11 @@
       type="text"
       placeholder="Search keywords..."
       bind:value={$applicationState.searchQuery}
-      on:input={handleFilterChange}
+      oninput={handleFilterChange}
     />
     <select
       bind:value={$applicationState.selectedCollection}
-      on:change={handleFilterChange}
+      onchange={handleFilterChange}
     >
       {#each availableCollections as collection}
         <option value={collection}>{collection}</option>
@@ -140,7 +149,7 @@
     </select>
     <select
       bind:value={$applicationState.selectedTag}
-      on:change={handleFilterChange}
+      onchange={handleFilterChange}
     >
       {#each availableTags as tag}
         <option value={tag}>{tag}</option>
@@ -148,9 +157,7 @@
     </select>
   </div>
 
-  <PhotoGrid
-    photos={$applicationState.photos}
-  />
+  <PhotoGrid photos={$applicationState.photos} />
 
   {#if $applicationState.hasMorePages}
     <div bind:this={sentinel} style="height: 1px;"></div>

@@ -55,8 +55,8 @@
     <div class="mini-logo__d">Atkinson</div>
     <div class="mini-logo__s">Photography</div>
   </a>
-  <nav id="main-nav" class="main-nav pc">
-    <ul id="menu-main-menu" class="nav">
+  <nav class="main-nav">
+    <ul class="nav">
       {#each menuItems as item}
         <li
           class="menu-item {item.label.toLowerCase()} {currentPath === item.path
