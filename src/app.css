@@ -263,25 +263,28 @@ body {
   display: flex;
   flex: 0 0 100%;
   user-select: none;
-  font-size: 22px;
-  gap: 1rem;
+  font-size: 30px;
+  gap: 0.5rem;
 }
 
 @media (min-width: 768px) {
   .b-hero {
     font-size: 48px;
+    gap: 1rem;
   }
 }
 
 @media (min-width: 992px) {
   .b-hero {
     font-size: 56px;
+    gap: 1.5rem;
   }
 }
 
 @media (min-width: 1200px) {
   .b-hero {
     font-size: 72px;
+    gap: 2rem;
   }
 }
 
