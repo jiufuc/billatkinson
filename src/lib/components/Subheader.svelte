@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
 
   type MenuItem = {
     path: string;
@@ -15,9 +15,8 @@
     { path: "/contact", label: "Contact" },
   ];
 
-  $: currentPath = $page.url.pathname;
-
-  let isSticky = false;
+  const currentPath = $derived(page.url.pathname);
+  let isSticky = $state(false);
 
   onMount(() => {
     const sentinel = document.getElementById("sticky-sentinel");
@@ -55,7 +54,7 @@
     <div class="mini-logo__d">Atkinson</div>
     <div class="mini-logo__s">Photography</div>
   </a>
-  <nav class="main-nav">
+  <nav class="main-nav pc">
     <ul class="nav">
       {#each menuItems as item}
         <li
@@ -74,7 +73,7 @@
       {/each}
     </ul>
   </nav>
-  <button on:click={topFunction} id="toTop" title="Go to top" class:show={isSticky}>
+  <button onclick={topFunction} id="toTop" title="Go to top" class:show={isSticky}>
     Top
   </button>
 </div>
