@@ -160,19 +160,23 @@
 <style>
   section {
     display: block;
+    border-top: 0.1rem solid #999;
   }
 
   .filters {
     display: flex;
+    flex-wrap: wrap;
     padding: 1rem;
-    gap: 2rem;
-    border-top: 0.1rem solid #999;
+    gap: 0.5rem 2rem;
+    margin: 0 auto;
+    justify-content: center;
   }
 
   input,
   select {
     margin-left: -1rem;
     padding: 0.3rem;
+    min-width: 200px;
     border: 1px solid #ccc;
   }
 </style>

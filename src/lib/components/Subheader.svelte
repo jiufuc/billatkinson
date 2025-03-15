@@ -50,8 +50,13 @@
 
 <div id="sticky-sentinel"></div>
 <div class="site-subheader container-fluid">
-  <nav id="main-nav" class="main-nav">
-    <ul id="menu-main-menu" class="nav nav--left">
+  <a href="/" class="mini-logo">
+    <div class="mini-logo__a">Bill</div>
+    <div class="mini-logo__d">Atkinson</div>
+    <div class="mini-logo__s">Photography</div>
+  </a>
+  <nav id="main-nav" class="main-nav pc">
+    <ul id="menu-main-menu" class="nav">
       {#each menuItems as item}
         <li
           class="menu-item {item.label.toLowerCase()} {currentPath === item.path
@@ -69,17 +74,29 @@
       {/each}
     </ul>
   </nav>
-  <a href="/" class="mini-logo">
-    <div class="mini-logo__a">Bill</div>
-    <div class="mini-logo__d">Atkinson</div>
-    <div class="mini-logo__s">Photography</div>
-  </a>
   <button on:click={topFunction} id="toTop" title="Go to top" class:show={isSticky}>
     Top
   </button>
 </div>
 
 <style>
+  .site-subheader {
+    position: sticky;
+    z-index: 990;
+    top: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 0.333em;
+    padding-bottom: 0.333em;
+    background-color: transparent;
+  }
+  
+  .site-subheader.sticky-active {
+    background-color: white;
+    opacity: 1;
+    transition: background-color 0.3s ease;
+  }
+
   .main-nav a.nav-link:after {
     content: "";
     display: block;
@@ -96,16 +113,11 @@
     transform: scaleX(0.65);
     opacity: 1;
   }
-
-  .nav--left {
-    margin-left: -0.6em;
-  }
-
+  
   .nav {
     display: flex;
     flex-wrap: wrap;
-    padding-left: 0;
-    margin-bottom: 0;
+    margin-right: -0.6em;
     list-style: none;
   }
 
@@ -113,32 +125,52 @@
     display: block;
     padding: 0.5em 0.6em;
   }
-
-  .site-subheader {
-    position: sticky;
-    z-index: 990;
-    top: 0;
-    display: flex;
-    justify-content: space-between;
-    padding-top: 0.333em;
-    padding-bottom: 0.333em;
-    background-color: transparent;
-  }
-
-  .site-subheader.sticky-active {
-    background-color: white;
-    opacity: 1;
-    transition: background-color 0.3s ease;
-  }
-
+  
   .mini-logo {
     visibility: visible;
     opacity: 1;
     display: flex;
     font-size: 22px;
     gap: 0.5rem;
+    margin-right: auto;
   }
-
+  
+  @media (max-width: 383px) {
+    .mini-logo {
+      display: none;
+    }
+  }
+  
+  @media (min-width: 992px) {
+    .mini-logo {
+      font-size: 30px;
+    }
+  }
+  
+  .mini-logo > div {
+    opacity: 0;
+    transform: translateX(-3rem);
+    transition: all 0.3s ease-in;
+  }
+  
+  :global(.site-subheader.sticky-active) .mini-logo__a {
+    opacity: 1;
+    transform: translateX(0);
+    transition-delay: 0.3s;
+  }
+  
+  :global(.site-subheader.sticky-active) .mini-logo__d {
+    opacity: 1;
+    transform: translateX(0);
+    transition-delay: 0.2s;
+  }
+  
+  :global(.site-subheader.sticky-active) .mini-logo__s {
+    opacity: 1;
+    transform: translateX(0);
+    transition-delay: 0.1s;
+  }
+  
   #toTop {
     position: fixed;
     bottom: 30px;
@@ -154,53 +186,17 @@
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0s 0.3s;
   }
-
+  
   #toTop.show {
     opacity: 1;
     visibility: visible;
     transition: opacity 0.3s ease, visibility 0s 0s, background-color 0.3s ease;
   }
-
+  
   #toTop:hover {
     background-color: rgba(155, 155, 155, 1);
   }
-
-  @media (max-width: 383px) {
-    .mini-logo {
-      display: none;
-    }
-  }
-
-  @media (min-width: 992px) {
-    .mini-logo {
-      font-size: 30px;
-    }
-  }
-
-  .mini-logo > div {
-    opacity: 0;
-    transform: translateX(3rem);
-    transition: all 0.3s ease-in;
-  }
-
-  :global(.site-subheader.sticky-active) .mini-logo__a {
-    opacity: 1;
-    transform: translateX(0);
-    transition-delay: 0.1s;
-  }
-
-  :global(.site-subheader.sticky-active) .mini-logo__d {
-    opacity: 1;
-    transform: translateX(0);
-    transition-delay: 0.2s;
-  }
-
-  :global(.site-subheader.sticky-active) .mini-logo__s {
-    opacity: 1;
-    transform: translateX(0);
-    transition-delay: 0.3s;
-  }
-
+  
   #sticky-sentinel {
     height: 1px;
     width: 100%;
