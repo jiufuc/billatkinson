@@ -42,7 +42,7 @@
             isMenuOpen = false;
           }
         },
-        { threshold: 0 }
+        { threshold: 1 }
       );
 
       observer.observe(sentinel);
