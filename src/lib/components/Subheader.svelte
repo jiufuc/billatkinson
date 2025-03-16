@@ -255,6 +255,11 @@
       right: 1rem;
     }
 
+    .main-nav {
+      justify-content: center;
+      width: 100%;
+    }
+
     .main-nav.mobile {
       position: absolute;
       display: block;
@@ -262,9 +267,9 @@
       right: 0;
       padding: 1rem;
       background: white;
-      min-width: 35%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      border-radius: 4%;
+      min-width: 40%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      border-radius: 0 0 15px 15px;
       font-size: 18px;
     }
 

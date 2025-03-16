@@ -249,17 +249,17 @@
     display: flex;
     flex-wrap: wrap;
     padding: 1rem;
-    gap: 0.5rem 2rem;
+    gap: 1rem;
     justify-content: center;
     transition: opacity 0.2s ease;
   }
 
   input,
   select {
-    margin-left: -1rem;
     padding: 0.3rem;
-    min-width: 200px;
+    min-width: 240px;
     border: 1px solid #ccc;
+    border-radius: 4px;
   }
 
   .filter-button {
@@ -268,11 +268,9 @@
     left: 50%;
     z-index: 99;
     background-color: rgba(225, 223, 221, 1);
-    color: black;
     cursor: pointer;
     padding: 1rem;
     border-radius: 50%;
-    font-size: 1rem;
     transition: all 0.3s ease;
   }
 
@@ -284,17 +282,18 @@
     position: absolute;
     display: flex;
     flex-direction: column;
-    background: white;
+    background: rgba(255, 253, 251, 1);
     border: 1px solid #ccc;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     z-index: 100;
     padding: 1rem;
-    border-radius: 5%;
+    border-radius: 15px;
   }
-
+  
   .popover-filters {
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 1.2rem;
+    font-size: 1.2rem
   }
 </style>

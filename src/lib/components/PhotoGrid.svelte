@@ -269,6 +269,7 @@
     opacity: 0;
     transform: translateY(20%);
     overflow: hidden;
+    border-radius: 1rem;
   }
 
   :global(.grid-item.in-view) {
