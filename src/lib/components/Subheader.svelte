@@ -82,7 +82,7 @@
       href="/"
       class="mini-logo"
       in:fade={{ duration: 300 }}
-      out:fade={{ duration: 200 }}
+      out:fly={{ y: -90, duration: 200 }}
     >
       <div class="mini-logo__a" in:fly={{ x: -30, duration: 300, delay: 300 }}>
         Bill

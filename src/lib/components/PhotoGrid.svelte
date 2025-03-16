@@ -252,6 +252,7 @@
     height: auto;
     object-fit: cover;
     transform-origin: center;
+    will-change: transform;
     transition: transform 0.3s ease-out;
   }
 
