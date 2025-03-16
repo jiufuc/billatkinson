@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { page } from "$app/state";
   import { fade, fly } from "svelte/transition";
+  import { isStickyStore } from "$lib/stores";
 
   type MenuItem = {
     path: string;
@@ -31,18 +32,17 @@
     if (sentinel && subheader) {
       const observer = new IntersectionObserver(
         (entries) => {
-          entries.forEach((entry) => {
-            const shouldBeSticky = entry.intersectionRatio < 1;
-            isSticky = shouldBeSticky;
-            if (shouldBeSticky) {
-              subheader.classList.add("sticky-active");
-            } else {
-              subheader.classList.remove("sticky-active");
-              isMenuOpen = false;
-            }
-          });
+          const shouldBeSticky = entries[0].intersectionRatio < 1;
+          isStickyStore.set(shouldBeSticky);
+          isSticky = shouldBeSticky;
+          if (shouldBeSticky) {
+            subheader.classList.add("sticky-active");
+          } else {
+            subheader.classList.remove("sticky-active");
+            isMenuOpen = false;
+          }
         },
-        { threshold: 1.0 }
+        { threshold: 0 }
       );
 
       observer.observe(sentinel);
@@ -51,7 +51,7 @@
     function handleClickOutside(event: MouseEvent) {
       const menu = document.querySelector(".main-nav.mobile");
       const hamburger = document.querySelector(".hamburger");
-      
+
       if (
         isMenuOpen &&
         menu &&
@@ -67,7 +67,6 @@
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-
   });
 
   function topFunction() {
@@ -79,7 +78,12 @@
 
 <div class="site-subheader container-fluid">
   {#if isSticky}
-    <a href="/" class="mini-logo" in:fade={{ duration: 300 }}>
+    <a
+      href="/"
+      class="mini-logo"
+      in:fade={{ duration: 300 }}
+      out:fade={{ duration: 200 }}
+    >
       <div class="mini-logo__a" in:fly={{ x: -30, duration: 300, delay: 300 }}>
         Bill
       </div>
@@ -155,7 +159,17 @@
       title="Go to top"
       transition:fade={{ duration: 200 }}
     >
-      Top
+      <svg
+        width="24"
+        height="24"
+        xmlns="http://www.w3.org/2000/svg"
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        ><path
+          d="M11 2.206l-6.235 7.528-.765-.645 7.521-9 7.479 9-.764.646-6.236-7.53v21.884h-1v-21.883z"
+        /></svg
+      >
+      <span class="sr-only">Back to top</span>
     </button>
   {/if}
 </div>
@@ -166,18 +180,21 @@
     z-index: 99;
     top: 0;
     display: flex;
-    justify-content: flex-end;
     align-items: center;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    height: 4rem;
     background-color: transparent;
-    transition: justify-content 0.3s ease;
   }
 
   .site-subheader.sticky-active {
     background-color: white;
     justify-content: center;
     transition: background-color 0.3s ease;
+  }
+
+  .main-nav {
+    position: absolute;
+    display: flex;
+    right: 1rem;
   }
 
   .main-nav a.nav-link:after {
@@ -200,7 +217,6 @@
   .nav {
     display: flex;
     flex-wrap: wrap;
-    margin-right: -0.6em;
     list-style: none;
   }
 
@@ -229,28 +245,27 @@
   }
 
   @media (max-width: 767px) {
-    .site-subheader {
-      justify-content: center;
-    }
-    
     :global(.site-subheader.sticky-active .main-nav) {
       display: none;
     }
 
     .hamburger {
+      position: absolute;
       display: flex;
+      right: 1rem;
     }
 
     .main-nav.mobile {
-      display: block;
       position: absolute;
+      display: block;
       top: 100%;
-      background: white;
-      width: 65%;
       right: 0;
       padding: 1rem;
+      background: white;
+      min-width: 35%;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      border-radius: 2%;
+      border-radius: 4%;
+      font-size: 18px;
     }
 
     .main-nav.mobile .nav {
@@ -265,12 +280,11 @@
   }
 
   .mini-logo {
+    position: absolute;
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    left: 1rem;
     font-size: 22px;
     gap: 0.5rem;
-    margin-right: auto;
   }
 
   @media (min-width: 992px) {
@@ -284,17 +298,15 @@
     bottom: 2rem;
     right: 2rem;
     z-index: 99;
-    background-color: rgba(125, 125, 125, 0.85);
-    color: white;
+    background-color: rgba(185, 183, 181, 0.85);
     cursor: pointer;
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 50%;
-    font-size: 1rem;
     transition: background-color 0.3s ease;
   }
 
   #toTop:hover {
-    background-color: rgba(155, 155, 155, 1);
+    background-color: rgba(215, 213, 211, 1);
   }
 
   #sticky-sentinel {
