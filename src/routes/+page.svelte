@@ -23,6 +23,6 @@
     position: relative;
     width: 100%;
     text-align: center;
-    padding: 60px 0 120px;
+    padding: 60px 25px 120px;
   }
 </style>
