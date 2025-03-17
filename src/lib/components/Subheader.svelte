@@ -186,7 +186,7 @@
   }
 
   .site-subheader.sticky-active {
-    background-color: white;
+    background-color: #f9f4f1;
     justify-content: center;
     transition: background-color 0.3s ease;
   }
