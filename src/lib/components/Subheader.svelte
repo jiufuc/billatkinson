@@ -177,7 +177,7 @@
 <style>
   .site-subheader {
     position: sticky;
-    z-index: 99;
+    z-index: 999;
     top: 0;
     display: flex;
     align-items: center;
@@ -302,7 +302,7 @@
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    z-index: 99;
+    z-index: 999;
     background-color: rgba(185, 183, 181, 0.85);
     cursor: pointer;
     padding: 1rem;
