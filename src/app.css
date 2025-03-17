@@ -60,11 +60,6 @@ html {
   font-family: sans-serif;
   line-height: 1.15;
   scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-}
-
-html {
   font-size: 14px;
 }
 
@@ -125,11 +120,12 @@ small {
 }
 
 a {
+  color: rgba(45, 45, 45, 0.85);
   text-decoration: none;
   background-color: transparent;
+  transition: color 0.3s ease;
 }
 
-a,
 a:hover {
   color: #342616;
 }
@@ -231,6 +227,10 @@ body {
   body {
     padding-top: 216px;
   }
+}
+
+.wrap {
+  min-height: 100vh;
 }
 
 .lazyload {

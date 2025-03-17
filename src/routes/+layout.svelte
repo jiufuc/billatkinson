@@ -6,7 +6,7 @@
 
 <Header />
 <Subheader />
-  <div class="wrap" role="document">
+  <div class="wrap">
     <main class="main container-fluid">
       {@render children()}
     </main>

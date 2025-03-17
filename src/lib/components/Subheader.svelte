@@ -200,7 +200,7 @@
   .main-nav a.nav-link:after {
     content: "";
     display: block;
-    border-top: 0.15em solid #000;
+    border-top: 0.15em solid rgba(52, 38, 22);
     opacity: 0;
     transform: scaleX(0);
     transition:
@@ -211,7 +211,7 @@
   .main-nav a.nav-link:hover:after,
   .main-nav li.active a:after {
     transform: scaleX(0.65);
-    opacity: 1;
+    opacity: 0.65;
   }
 
   .nav {

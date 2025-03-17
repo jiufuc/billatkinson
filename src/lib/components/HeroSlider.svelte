@@ -1,22 +1,23 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { tweened } from 'svelte/motion';
-  import { cubicOut, linear } from 'svelte/easing';
-  import { writable, derived } from 'svelte/store';
+  import { onMount } from "svelte";
+  import { tweened } from "svelte/motion";
+  import { cubicOut, linear } from "svelte/easing";
+  import { writable, derived } from "svelte/store";
+  import { fly } from "svelte/transition";
 
   const widths = [750, 1080, 1366, 1880];
   const photoIds = [1030, 1234, 1443, 1538, 1817, 2005, 2118];
-  
+
   const BUFFER_SIZE = 2;
 
   const currentIndexStore = writable(0);
   const animatedIndex = tweened(0, { duration: 3000, easing: cubicOut });
 
   const AUTOPLAY_DURATION = 6000;
-  
-  const progressValue = tweened(0, { 
-    duration: AUTOPLAY_DURATION, 
-    easing: linear 
+
+  const progressValue = tweened(0, {
+    duration: AUTOPLAY_DURATION,
+    easing: linear,
   });
 
   function getModuloIndex(index: number): number {
@@ -25,18 +26,18 @@
 
   const visibleSlides = derived(currentIndexStore, ($currentIndex) => {
     const slides = [];
-    
+
     for (let i = -BUFFER_SIZE; i <= BUFFER_SIZE; i++) {
       const absoluteIndex = $currentIndex + i;
       const normalizedIndex = getModuloIndex(absoluteIndex);
-      
+
       slides.push({
         dataIndex: normalizedIndex,
         virtualPosition: absoluteIndex,
-        photoId: photoIds[normalizedIndex]
+        photoId: photoIds[normalizedIndex],
       });
     }
-    
+
     return slides;
   });
 
@@ -55,15 +56,15 @@
   let dragOffset = 0;
   let loadedImages = new Set<number>();
   let isBrowser = false;
-  
+
   function preloadImage(id: number): void {
     if (!isBrowser || loadedImages.has(id)) return;
-    
+
     const img = new window.Image();
     img.onload = () => loadedImages.add(id);
     img.src = `https://static.billatkinson.us/srcsm/srcsm-${id}_Image.webp`;
   }
-  
+
   $: if (isBrowser) {
     const currentIndex = $currentIndexStore;
     preloadImage(photoIds[getModuloIndex(currentIndex + 1)]);
@@ -81,27 +82,27 @@
     if (autoplayInterval !== null) {
       clearInterval(autoplayInterval);
     }
-    
+
     startProgressAnimation();
-    
+
     autoplayInterval = setInterval(() => {
       const nextIndex = $currentIndexStore + 1;
       currentIndexStore.set(nextIndex);
       animatedIndex.set(nextIndex);
-      
+
       startProgressAnimation();
     }, AUTOPLAY_DURATION);
   }
 
   onMount(() => {
     isBrowser = true;
-    
+
     startAutoplay();
-    
+
     preloadImage(photoIds[0]);
     preloadImage(photoIds[getModuloIndex(1)]);
     preloadImage(photoIds[getModuloIndex(-1)]);
-    
+
     return () => {
       if (autoplayInterval !== null) {
         clearInterval(autoplayInterval);
@@ -109,29 +110,29 @@
     };
   });
 
-  function startDrag(event: { clientX: number; }) {
+  function startDrag(event: { clientX: number }) {
     if (autoplayInterval !== null) {
       clearInterval(autoplayInterval);
       autoplayInterval = null;
     }
-    
+
     isDragging = true;
     startX = event.clientX;
     dragOffset = 0;
-    window.addEventListener('mousemove', drag);
-    window.addEventListener('mouseup', stopDrag);
-    
+    window.addEventListener("mousemove", drag);
+    window.addEventListener("mouseup", stopDrag);
+
     progressValue.set($progressValue, { duration: 0 });
   }
 
-  function drag(event: { clientX: any; }) {
+  function drag(event: { clientX: any }) {
     if (!isDragging || !slideshowEl) return;
     const currentX = event.clientX;
     dragOffset = currentX - startX;
 
     const slideWidth = slideshowEl.clientWidth;
     const dragFraction = dragOffset / slideWidth;
-    
+
     const targetPosition = $currentIndexStore - dragFraction;
     animatedIndex.set(targetPosition);
   }
@@ -139,8 +140,8 @@
   function stopDrag() {
     if (!isDragging || !slideshowEl) return;
     isDragging = false;
-    window.removeEventListener('mousemove', drag);
-    window.removeEventListener('mouseup', stopDrag);
+    window.removeEventListener("mousemove", drag);
+    window.removeEventListener("mouseup", stopDrag);
 
     const slideWidth = slideshowEl.clientWidth;
     const minDrag = slideWidth * 0.2;
@@ -169,6 +170,7 @@
   class="slideshow"
   bind:this={slideshowEl}
   on:mousedown={startDrag}
+  in:fly={{ y: 30, duration: 600, delay: 300 }}
 >
   <div class="slides-container">
     {#each $visibleSlides as slide, i}
@@ -258,17 +260,17 @@
     height: 100%;
     object-fit: cover;
   }
-  
+
   .progress-container {
     position: relative;
     margin-top: 12px;
     float: right;
     width: 15%;
     height: 6px;
-    background-color: rgba(59, 59, 59, .2);
+    background-color: rgba(59, 59, 59, 0.2);
     z-index: 150;
   }
-  
+
   .progress-bar {
     height: 100%;
     background-color: #3b3b3b;
