@@ -1,3 +1,4 @@
+<!-- src/routes/gallery/+page.svelte -->
 <script lang="ts">
   import { onMount } from "svelte";
   import { writable } from "svelte/store";

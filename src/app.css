@@ -2,18 +2,33 @@
 @import "photoswipe/style.css";
 
 @font-face {
-  font-family: "Agipo";
-  src: url(../fonts/agipo-bold.woff2) format("woff2");
-  font-weight: 700;
+  font-family: "SF Pro";
+  src: url(../fonts/SF-Pro.woff2) format("woff2-variations");
+  font-weight: 100 900;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "Agipo";
-  src: url(../fonts/agipo-regular.woff2) format("woff2");
-  font-weight: 400;
+  font-family: "SF Pro Italic";
+  src: url(../fonts/SF-Pro-Italic.woff2) format("woff2-variations");
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "New York";
+  src: url(../fonts/NewYork.woff2) format("woff2-variations");
+  font-weight: 100 900;
   font-style: normal;
 }
+
+@font-face {
+  font-family: "New York Italic";
+  src: url(../fonts/NewYorkItalic.woff2) format("woff2-variations");
+  font-weight: 100 900;
+  font-style: italic;
+}
+
 
 :root {
   --blue: #007bff;
@@ -42,7 +57,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
-  --font-family-sans-serif: "" Agipo "", -apple-system, BlinkMacSystemFont,
+  --font-family-sans-serif: "" SF Pro "", -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol";
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
@@ -71,7 +86,7 @@ html {
 
 body {
   margin: 0;
-  font-family: "Agipo", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+  font-family: "SF Pro", -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Helvetica Neue, Arial, sans-serif;
   font-size: 1rem;
   font-weight: 400;
