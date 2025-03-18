@@ -1,6 +1,7 @@
 <script lang="ts">
   import HeroSlider from "$lib/components/HeroSlider.svelte";
   import { fly } from "svelte/transition";
+  import { expoOut } from "svelte/easing";
   import { onMount } from "svelte";
 
   let show = false;
@@ -11,7 +12,10 @@
 </script>
 
 {#if show}
-  <section class="section-headline" in:fly={{ y: 60, duration: 600 }}>
+  <section
+    class="section-headline"
+    in:fly={{ y: 60, duration: 1500, opacity: 1, easing: expoOut }}
+  >
     <h4>Over 900 color photographs celebrating the beauty of nature.</h4>
   </section>
 
