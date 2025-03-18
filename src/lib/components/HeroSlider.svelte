@@ -5,8 +5,8 @@
   import { writable, derived } from "svelte/store";
   import { fly } from "svelte/transition";
 
-  const widths = [750, 1080, 1366, 1880];
-  const photoIds = [1030, 1234, 1443, 1538, 1817, 2005, 2118];
+  const widths = [750, 1080, 1366, 1880, 2240, 3000];
+  const photoIds = [1030, 1234, 1443, 1630, 1997, 2005, 2118];
 
   const BUFFER_SIZE = 2;
 

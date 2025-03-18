@@ -183,6 +183,7 @@
     align-items: center;
     height: 4rem;
     background-color: transparent;
+    font-weight: 500;
   }
 
   .site-subheader.sticky-active {

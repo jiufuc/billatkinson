@@ -29,7 +29,6 @@
   font-style: italic;
 }
 
-
 :root {
   --blue: #007bff;
   --indigo: #6610f2;
@@ -279,6 +278,8 @@ body {
   flex: 0 0 100%;
   user-select: none;
   font-size: 30px;
+  letter-spacing: 3px;
+  font-weight: 500;
   gap: 0.5rem;
 }
 

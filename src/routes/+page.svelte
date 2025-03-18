@@ -28,6 +28,10 @@
     width: 100%;
     text-align: center;
     padding: 60px 25px 120px;
+  }
+
+  .section-headline h4 {
     font-family: "New York";
+    font-weight: 400;
   }
 </style>
