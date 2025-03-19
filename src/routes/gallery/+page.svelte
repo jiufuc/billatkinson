@@ -3,7 +3,7 @@
   import { writable } from "svelte/store";
   import { debounce, fetchPhotos } from "$lib/utils";
   import type { Photo, Pagination, AppState } from "$lib/types";
-  import PhotoGrid from "$lib/components/PhotoGrid.svelte";
+  import GalleryGrid from "$lib/components/GalleryGrid.svelte";
   import GalleryFilters from "$lib/components/GalleryFilters.svelte";
   import { isStickyStore } from "$lib/stores";
 
@@ -138,7 +138,7 @@
     on:filter={handleFilterChange}
   />
 
-  <PhotoGrid photos={$applicationState.photos} />
+  <GalleryGrid photos={$applicationState.photos} />
 
   {#if $applicationState.isLoading}
     <div class="loading-indicator">
