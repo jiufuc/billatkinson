@@ -216,7 +216,7 @@
     position: relative;
     width: 100%;
     height: auto;
-    aspect-ratio: 3/2;
+    aspect-ratio: 7/5;
     overflow: hidden;
   }
 

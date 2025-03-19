@@ -15,21 +15,6 @@
     filter: void;
   }>();
 
-  const debouncedFilterChange = debounce(() => {
-    dispatch("filter");
-  }, 300);
-
-  function handleFilterChange() {
-    debouncedFilterChange();
-  }
-
-  function clearFilters() {
-    applicationState.searchQuery = "";
-    applicationState.selectedCollection = "All Collections";
-    applicationState.selectedTag = "All Tags";
-    dispatch("filter");
-  }
-
   // Popover for mobile filters
   const {
     elements: { trigger, content, overlay, arrow },
@@ -38,6 +23,63 @@
     forceVisible: true,
     preventScroll: false,
   });
+
+  // Function to handle scroll completion and execute callback
+  function scrollToTopThenExecute(callback: () => void) {
+    // If already at top, just execute callback immediately
+    if (window.scrollY < 10) {
+      callback();
+      return;
+    }
+
+    // Create one-time scroll end detection
+    const handleScrollEnd = () => {
+      if (window.scrollY < 10) {
+        window.removeEventListener('scroll', handleScrollEnd);
+        clearTimeout(fallbackTimer);
+        callback();
+      }
+    };
+
+    // Add scroll listener
+    window.addEventListener('scroll', handleScrollEnd);
+    
+    // Start scrolling to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Fallback timer in case scroll event doesn't fire properly
+    const fallbackTimer = setTimeout(() => {
+      window.removeEventListener('scroll', handleScrollEnd);
+      callback();
+    }, 800);
+  }
+
+  // Handle filter application or clearing
+  function applyFilter(shouldClear = false) {
+    // Close popover if open
+    if ($open) $open = false;
+    
+    // Scroll first, then update state and filter
+    scrollToTopThenExecute(() => {
+      if (shouldClear) {
+        applicationState.searchQuery = "";
+        applicationState.selectedCollection = "All Collections";
+        applicationState.selectedTag = "All Tags";
+      }
+      // Always dispatch the filter event
+      dispatch("filter");
+    });
+  }
+
+  const debouncedFilterChange = debounce(() => applyFilter(), 300);
+
+  function handleFilterChange() {
+    debouncedFilterChange();
+  }
+
+  function clearFilters() {
+    applyFilter(true);
+  }
 </script>
 
 <div class="filters-container">

@@ -26,3 +26,5 @@ export const load: PageServerLoad = async ({ fetch }) => {
     return { error: 'Failed to load gallery data', photos: [], pagination: { hasNext: false } };
   }
 };
+
+export const ssr = false;
