@@ -1,12 +1,10 @@
-<!-- src/routes/gallery/+page.svelte -->
 <script lang="ts">
   import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import { debounce, fetchPhotos } from "$lib/utils";
   import type { Photo, Pagination, AppState } from "$lib/types";
   import PhotoGrid from "$lib/components/PhotoGrid.svelte";
-  import { createPopover, melt } from "@melt-ui/svelte";
-  import { fade } from "svelte/transition";
+  import GalleryFilters from "$lib/components/GalleryFilters.svelte";
   import { isStickyStore } from "$lib/stores";
 
   const { data } = $props<{
@@ -35,17 +33,11 @@
   let observer: IntersectionObserver;
   let sentinel: HTMLDivElement | null = $state(null);
 
-  const debouncedFilterChange = debounce(() => resetAndLoad(), 300);
-
   const debouncedLoadMore = debounce(() => {
     loadMorePromise = loadMorePromise.then(() =>
       fetchPhotosAndUpdate($applicationState.currentPage + 1)
     );
   }, 300);
-
-  function handleFilterChange() {
-    debouncedFilterChange();
-  }
 
   async function fetchPhotosAndUpdate(
     page: number,
@@ -84,6 +76,10 @@
 
   function loadMore() {
     debouncedLoadMore();
+  }
+
+  function handleFilterChange() {
+    resetAndLoad();
   }
 
   function createIntersectionObserver(
@@ -129,114 +125,36 @@
       }
     }
   });
-
-  const {
-    elements: { trigger, content, overlay },
-    states: { open },
-  } = createPopover({
-    forceVisible: true,
-    preventScroll: false,
-  });
 </script>
 
 <div id="sticky-sentinel"></div>
 
 <section>
-  <div
-    class="filters"
-    style={$isStickyStore ? "opacity: 0; pointer-events: none;" : "opacity: 1;"}
-  >
-    <input
-      type="text"
-      placeholder="Search keywords..."
-      bind:value={$applicationState.searchQuery}
-      oninput={handleFilterChange}
-    />
-    <select
-      bind:value={$applicationState.selectedCollection}
-      onchange={handleFilterChange}
-    >
-      {#each availableCollections as collection}
-        <option value={collection}>{collection}</option>
-      {/each}
-    </select>
-    <select
-      bind:value={$applicationState.selectedTag}
-      onchange={handleFilterChange}
-    >
-      {#each availableTags as tag}
-        <option value={tag}>{tag}</option>
-      {/each}
-    </select>
-  </div>
-  {#if $isStickyStore}
-    <button
-      type="button"
-      use:melt={$trigger}
-      class="filter-button"
-      transition:fade={{ duration: 200 }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M20 7h-9"></path>
-        <path d="M14 17H5"></path>
-        <circle cx="17" cy="17" r="3"></circle>
-        <circle cx="7" cy="7" r="3"></circle>
-      </svg>
-      <span class="sr-only">Open filters</span>
-    </button>
-    {#if $open}
-      <div
-        use:melt={$overlay}
-        class="popover-overlay"
-        transition:fade={{ duration: 200 }}
-      ></div>
-      <div
-        use:melt={$content}
-        class="popover-content"
-        transition:fade={{ duration: 200 }}
-      >
-        <div class="filters popover-filters">
-          <input
-            type="text"
-            placeholder="Search keywords..."
-            bind:value={$applicationState.searchQuery}
-            oninput={handleFilterChange}
-          />
-          <select
-            bind:value={$applicationState.selectedCollection}
-            onchange={handleFilterChange}
-          >
-            {#each availableCollections as collection}
-              <option value={collection}>{collection}</option>
-            {/each}
-          </select>
-          <select
-            bind:value={$applicationState.selectedTag}
-            onchange={handleFilterChange}
-          >
-            {#each availableTags as tag}
-              <option value={tag}>{tag}</option>
-            {/each}
-          </select>
-        </div>
-      </div>
-    {/if}
-  {/if}
+  <GalleryFilters 
+    bind:applicationState={$applicationState} 
+    collections={availableCollections} 
+    tags={availableTags} 
+    isSticky={$isStickyStore}
+    on:filter={handleFilterChange}
+  />
 
   <PhotoGrid photos={$applicationState.photos} />
 
+  {#if $applicationState.isLoading}
+    <div class="loading-indicator">
+      <span>Loading more photos...</span>
+    </div>
+  {/if}
+
   {#if $applicationState.hasMorePages}
     <div bind:this={sentinel} style="height: 1px;"></div>
+  {/if}
+  
+  {#if $applicationState.errorMessage}
+    <div class="error-message">
+      <p>Error: {$applicationState.errorMessage}</p>
+      <button onclick={resetAndLoad}>Retry</button>
+    </div>
   {/if}
 </section>
 
@@ -246,55 +164,28 @@
     border-top: 0.1rem solid #999;
   }
 
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
+  .loading-indicator {
+    text-align: center;
     padding: 1rem;
-    gap: 1rem;
-    justify-content: center;
-    transition: opacity 0.2s ease;
+    font-style: italic;
+    color: #666;
   }
 
-  input,
-  select {
-    padding: 0.3rem;
-    min-width: 240px;
+  .error-message {
+    background-color: #fff0f0;
+    color: #d32f2f;
+    padding: 1rem;
+    margin: 1rem;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .error-message button {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #f5f5f5;
     border: 1px solid #ccc;
     border-radius: 4px;
-  }
-
-  .filter-button {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    z-index: 99;
-    background-color: rgba(225, 223, 221, 1);
     cursor: pointer;
-    padding: 1rem;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-  }
-
-  .filter-button:hover {
-    background-color: rgba(255, 253, 251, 1);
-  }
-
-  .popover-content {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    background: rgba(255, 253, 251, 1);
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    padding: 1rem;
-    border-radius: 15px;
-  }
-  
-  .popover-filters {
-    flex-direction: column;
-    align-items: center;
-    gap: 1.2rem;
-    font-size: 1.2rem
   }
 </style>
