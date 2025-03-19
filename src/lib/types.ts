@@ -33,7 +33,9 @@ export interface AppState {
   errorMessage: string | null;
   searchQuery: string;
   selectedCollection: string;
-  selectedTag: string;
+  selectedTag: string; 
+  sortField: string;
+  sortDirection: "asc" | "desc"; 
 }
 
 export interface FooterLink {

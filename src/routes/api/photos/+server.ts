@@ -17,62 +17,90 @@ export async function GET({ url, platform }) {
   const searchTerm = url.searchParams.get("search") || "";
   const selectedCollection = url.searchParams.get("collection") || "";
   const selectedColor = url.searchParams.get("color") || "";
+  
+  // Extract sorting parameters
+  const sortField = url.searchParams.get("sortField") || "id";
+  const sortDirection = url.searchParams.get("sortDirection") || "asc";
 
   try {
     // Initialize the base SQL query
     let sqlQuery = "SELECT p.* FROM photos p";
-    const queryParameters = [];
-
-    // Join tables if a color filter is applied
-    if (selectedColor) {
-      sqlQuery += " JOIN photo_tags pt ON p.photo_idx = pt.photo_idx JOIN tags t ON pt.tag_id = t.tag_id";
-    }
-
+    const queryParameters: any[] = [];
+    
     // Build the WHERE clause based on filters
-    const whereConditions = [];
-    if (searchTerm) {
-      // Perform full-text search and get matching photo indices
-      const fullTextSearchQuery = "SELECT photo_idx FROM photos_fts WHERE photos_fts MATCH ?";
-      const fullTextResult = await database.prepare(fullTextSearchQuery).bind(searchTerm + "*").all();
-      const matchingPhotoIds = fullTextResult.results.map(row => row.photo_idx);
+    const whereConditions: string[] = [];
+    let hasJoinedTags = false;
 
-      if (matchingPhotoIds.length === 0) {
-        // Return empty result if no matches found
-        return new Response(JSON.stringify({
-          photos: [],
-          pagination: {
-            currentPage: pageNumber,
-            totalPages: 0,
-            totalItems: 0,
-            hasNext: false
-          }
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
+    if (searchTerm) {
+      // Split the search term into individual tags for restrictive filtering
+      const searchTags = searchTerm.trim().split(/\s+/).filter(tag => tag.length > 0);
+      
+      if (searchTags.length > 0) {
+        // Create a unified FTS query
+        const ftsConditions: string[] = [];
+        
+        for (const tag of searchTags) {
+          // Construct the FTS query
+          const ftsQuery = `photo_idx IN (SELECT photo_idx FROM photos_fts WHERE photos_fts MATCH ?)`;
+          queryParameters.push(`${tag}*`); // Use prefix matching with wildcard
+          ftsConditions.push(ftsQuery);
+        }
+        
+        // Add the combined FTS conditions to the main WHERE clause
+        whereConditions.push(`(${ftsConditions.join(" AND ")})`);
       }
-      whereConditions.push(`p.photo_idx IN (${matchingPhotoIds.join(",")})`);
     }
+    
+    // Join tags table if needed for color filtering
+    if (selectedColor) {
+      hasJoinedTags = true;
+      sqlQuery += " JOIN photo_tags pt ON p.photo_idx = pt.photo_idx JOIN tags t ON pt.tag_id = t.tag_id";
+      whereConditions.push("t.name = ?");
+      queryParameters.push(selectedColor);
+    }
+    
     if (selectedCollection) {
       whereConditions.push("p.photo_collection = ?");
       queryParameters.push(selectedCollection);
-    }
-    if (selectedColor) {
-      whereConditions.push("t.name = ?");
-      queryParameters.push(selectedColor);
     }
 
     // Add WHERE clause if any conditions exist
     if (whereConditions.length > 0) {
       sqlQuery += " WHERE " + whereConditions.join(" AND ");
     }
+    
+    // Add GROUP BY if we joined the tags table to avoid duplicates
+    if (hasJoinedTags) {
+      sqlQuery += " GROUP BY p.photo_idx";
+    }
 
     // Calculate total items for pagination
     const countQuery = `SELECT COUNT(*) as total FROM (${sqlQuery}) sub`;
     const countResult = await database.prepare(countQuery).bind(...queryParameters).first<{ total: number }>();
-    const totalItems = countResult!.total;
+    const totalItems = countResult?.total || 0;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    // Add pagination to the main query
+    // Determine the ORDER BY clause based on the sort field and direction
+    let orderByField: string;
+    switch (sortField) {
+      case "year":
+        // Order by year, then by ID for consistent results when years match
+        orderByField = "p.photo_year";
+        break;
+      case "id":
+      default:
+        orderByField = "p.photo_id";
+        break;
+    }
+
+    // Add ordering and pagination to the main query
+    sqlQuery += ` ORDER BY ${orderByField} ${sortDirection === "desc" ? "DESC" : "ASC"}`;
+    
+    // Add a secondary sort by ID to ensure consistent ordering
+    if (sortField !== "id") {
+      sqlQuery += `, p.photo_id ${sortDirection === "desc" ? "DESC" : "ASC"}`;
+    }
+    
     sqlQuery += " LIMIT ? OFFSET ?";
     queryParameters.push(itemsPerPage, offsetValue);
 
@@ -90,7 +118,16 @@ export async function GET({ url, platform }) {
       }
     }), { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
-    // Handle any database or query errors
-    return new Response(JSON.stringify({ error: 'Database error' }), { status: 500 });
+    // Log the complete error for debugging
+    console.error('Database error:', error);
+    
+    return new Response(JSON.stringify({ 
+      error: 'Database error', 
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' } 
+    });
   }
 }
