@@ -170,7 +170,7 @@
   class="slideshow"
   bind:this={slideshowEl}
   on:mousedown={startDrag}
-  in:fly={{ duration: 300, delay: 1200 }}
+  in:fly={{ duration: 300, delay: 1000 }}
 >
   <div class="slides-container">
     {#each $visibleSlides as slide, i}
