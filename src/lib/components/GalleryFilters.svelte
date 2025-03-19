@@ -50,7 +50,7 @@
       placeholder="Search keywords..."
       bind:value={applicationState.searchQuery}
       on:input={handleFilterChange}
-      class="w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      class="w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
     />
 
     <!-- Collection Select -->
