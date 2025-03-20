@@ -277,8 +277,7 @@ body {
   display: flex;
   flex: 0 0 100%;
   user-select: none;
-  font-size: 30px;
-  letter-spacing: 3px;
+  font-size: 6vw;
   font-weight: 500;
   gap: 0.5rem;
 }

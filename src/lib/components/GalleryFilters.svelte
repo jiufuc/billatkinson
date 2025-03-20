@@ -275,7 +275,7 @@
       type="button"
       use:melt={$trigger}
       class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 bg-white hover:bg-gray-100 p-4 rounded-full shadow-lg transition-all duration-300 ease border border-gray-200 cursor-pointer"
-      transition:fade={{ duration: 300 }}
+      transition:fly={{ y: 20, duration: 300 }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

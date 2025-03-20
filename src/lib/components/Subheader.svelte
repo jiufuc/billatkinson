@@ -157,7 +157,7 @@
       onclick={topFunction}
       id="toTop"
       title="Go to top"
-      transition:fly={{ x: 20, duration: 200 }}
+      transition:fly={{ y: 20, duration: 300 }}
     >
       <svg
         width="24"
