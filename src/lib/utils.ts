@@ -42,13 +42,23 @@ export function throttle<T extends (...args: any[]) => void>(func: T, delay: num
 }
 
 export function buildQueryParams(state: AppState, pageNumber: number): URLSearchParams {
-  return new URLSearchParams({
+  const params: Record<string, string> = {
     page: pageNumber.toString(),
     limit: '15',
-    ...(state.searchQuery && { search: state.searchQuery }),
-    ...(state.selectedCollection !== 'All Collections' && { collection: state.selectedCollection }),
-    ...(state.selectedTag !== 'All Tags' && { color: state.selectedTag.toLowerCase() })
-  });
+  };
+  if (state.searchQuery && state.searchQuery.trim() !== '') {
+    params.search = state.searchQuery.trim();
+  }
+  if (state.selectedCollection !== 'All Collections') {
+    params.collection = state.selectedCollection;
+  }
+  if (state.sortField) {
+    params.sortField = state.sortField;
+  }
+  if (state.sortDirection) {
+    params.sortDirection = state.sortDirection;
+  }
+  return new URLSearchParams(params);
 }
 
 export async function fetchPhotos(state: AppState, pageNumber: number): Promise<{ photos: Photo[]; pagination: Pagination }> {

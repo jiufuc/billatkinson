@@ -16,6 +16,7 @@
     };
   }>();
 
+  // Initialize application state with proper TypeScript typing
   const applicationState = writable<AppState>({
     photos: data.photos,
     currentPage: 1,
@@ -25,6 +26,8 @@
     searchQuery: "",
     selectedCollection: "All Collections",
     selectedTag: "All Tags",
+    sortField: "id",
+    sortDirection: "asc"
   });
 
   let availableCollections = data.collections;
@@ -133,7 +136,6 @@
   <GalleryFilters 
     bind:applicationState={$applicationState} 
     collections={availableCollections} 
-    tags={availableTags} 
     isSticky={$isStickyStore}
     on:filter={handleFilterChange}
   />
