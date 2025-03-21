@@ -4,6 +4,7 @@
   import { cubicOut, linear } from "svelte/easing";
   import { writable, derived } from "svelte/store";
   import { fly } from "svelte/transition";
+  import { generateSrcset } from "$lib/utils";
 
   const widths = [750, 1080, 1366, 1880, 2240, 3000];
   const photoIds = [1030, 1234, 1443, 1630, 1997, 2005, 2118];
@@ -41,14 +42,6 @@
     return slides;
   });
 
-  function generateSrcset(id: number, widths: number[]): string {
-    const zone = "https://static.billatkinson.us";
-    const sourceImage = `srclg/srclg-${id}_Image.webp`;
-    return widths
-      .map((w) => `${zone}/cdn-cgi/image/width=${w}/${sourceImage} ${w}w`)
-      .join(", ");
-  }
-
   let autoplayInterval: number | null = null;
   let slideshowEl: HTMLDivElement;
   let isDragging = false;
@@ -62,7 +55,7 @@
 
     const img = new window.Image();
     img.onload = () => loadedImages.add(id);
-    img.src = `https://static.billatkinson.us/srcsm/srcsm-${id}_Image.webp`;
+    img.src = `https://static.billatkinson.us/src/src-${id}_Image.jpg`;
   }
 
   $: if (isBrowser) {
@@ -194,9 +187,9 @@
             "
           >
             <img
-              class="embla__parallax__img"
+              class=""
               srcset={generateSrcset(slide.photoId, widths)}
-              src={`https://static.billatkinson.us/srcsm/srcsm-${slide.photoId}_Image.webp`}
+              src={`https://static.billatkinson.us/srcset/srcset-${slide.photoId}_Image.jpg`}
               alt="Image {slide.photoId}"
               loading={Math.abs(offset) <= 1 ? "eager" : "lazy"}
             />

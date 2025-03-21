@@ -71,3 +71,22 @@ export async function fetchPhotos(state: AppState, pageNumber: number): Promise<
 export function cn(...inputs: (string | undefined | null | boolean)[]): string {
   return inputs.filter(Boolean).join(" ");
 }
+
+export function generateSrcset(photoId: number, widths: number[]): string {
+    const srcsetCache = new Map<number, string>();
+    if (srcsetCache.has(photoId)) {
+      return srcsetCache.get(photoId)!;
+    }
+    
+    const zone = "https://static.billatkinson.us";
+    const url = `srcset/srcset-${photoId}_Image.jpg`;
+    const result = widths
+      .map(
+        (width) =>
+          `${zone}/cdn-cgi/image/w=${width},f=auto/${url} ${width}w`
+      )
+      .join(", ");
+      
+    srcsetCache.set(photoId, result);
+    return result;
+  }

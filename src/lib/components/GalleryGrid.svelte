@@ -1,7 +1,7 @@
 <!-- src/lib/components/PhotoGrid.svelte -->
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
-  import { debounce, throttle } from "$lib/utils";
+  import { debounce, throttle, generateSrcset } from "$lib/utils";
   import type { Photo } from "$lib/types";
   import "lazysizes";
   import imagesLoaded from "imagesloaded";
@@ -12,29 +12,8 @@
   let msnry: any;
   let lightbox: any;
   let observer: IntersectionObserver;
-  
-  // Memoization cache for srcset generation
-  const srcsetCache = new Map<number, string>();
-  const widths: number[] = [320, 480, 640, 720, 880, 1024];
 
-  // Memoized srcset generation
-  function generateSrcset(photoId: number, widths: number[]): string {
-    if (srcsetCache.has(photoId)) {
-      return srcsetCache.get(photoId)!;
-    }
-    
-    const zone = "https://static.billatkinson.us";
-    const sourceImage = `srcsm/srcsm-${photoId}_Image.webp`;
-    const result = widths
-      .map(
-        (width) =>
-          `${zone}/cdn-cgi/image/width=${width}/${sourceImage} ${width}w`
-      )
-      .join(", ");
-      
-    srcsetCache.set(photoId, result);
-    return result;
-  }
+  const widths: number[] = [320, 480, 640, 720, 880, 1024];
 
   async function initializeGallery() {
     try {
@@ -69,7 +48,7 @@
             padding: { top: 65, bottom: 65, left: 25, right: 25 },
             preload: [2, 5],
           });
-          
+
           // Register UI elements for PhotoSwipe
           lightbox.on("uiRegister", function () {
             // Add caption element
@@ -93,7 +72,7 @@
                 });
               },
             });
-            
+
             // Add download button
             lightbox.pswp.ui.registerElement({
               name: "download-button",
@@ -119,7 +98,7 @@
               },
             });
           });
-          
+
           lightbox.init();
         }
       });
@@ -176,31 +155,34 @@
   function setupIntersectionObserver() {
     if (!grid) return;
 
-    observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const target = entry.target as HTMLElement;
-          const img = target.querySelector("img.lazyload");
-          
-          if (img) {
-            img.addEventListener(
-              "lazyloaded",
-              () => {
-                target.classList.add("in-view");
-              },
-              { once: true }
-            );
-          } else {
-            target.classList.add("in-view");
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const target = entry.target as HTMLElement;
+            const img = target.querySelector("img.lazyload");
+
+            if (img) {
+              img.addEventListener(
+                "lazyloaded",
+                () => {
+                  target.classList.add("in-view");
+                },
+                { once: true }
+              );
+            } else {
+              target.classList.add("in-view");
+            }
+
+            observer.unobserve(target);
           }
-          
-          observer.unobserve(target);
-        }
-      });
-    }, {
-      rootMargin: "200px", // Preload images before they enter the viewport
-      threshold: 0.1
-    });
+        });
+      },
+      {
+        rootMargin: "200px", // Preload images before they enter the viewport
+        threshold: 0.1,
+      }
+    );
 
     const gridItems = grid.querySelectorAll(".grid-item");
     gridItems.forEach((item) => observer.observe(item));
@@ -215,7 +197,7 @@
     const debouncedLayout = debounce(() => {
       if (msnry) msnry.layout();
     }, 200);
-    
+
     document.addEventListener("lazyloaded", debouncedLayout);
 
     return () => {
@@ -232,10 +214,10 @@
           msnry.reloadItems();
           msnry.layout();
         }
-        
+
         // Re-initialize hover effects and observe new items
         initializeHover(grid);
-        
+
         const gridItems = grid.querySelectorAll(".grid-item");
         gridItems.forEach((item) => {
           if (!item.classList.contains("in-view")) {
@@ -263,8 +245,8 @@
   <div class="gutter-sizer"></div>
   {#each photos as photo (photo.photo_id)}
     <a
-      href={`https://static.billatkinson.us/src/src-${photo.photo_id}_Image.jpg`}
-      data-pswp-src={`https://static.billatkinson.us/srclg/srclg-${photo.photo_id}_Image.webp`}
+      href={`https://static.billatkinson.us/srcset/srcset-${photo.photo_id}_Image.jpg`}
+      data-pswp-src={`https://static.billatkinson.us/srcset/srcset-${photo.photo_id}_Image.jpg`}
       data-pswp-width={photo.width}
       data-pswp-height={photo.height}
       style="aspect-ratio: {photo.width} / {photo.height};"
@@ -273,7 +255,7 @@
     >
       <img
         data-srcset={generateSrcset(photo.photo_id, widths)}
-        data-src={`https://static.billatkinson.us/srcsm/srcsm-${photo.photo_id}_Image.webp`}
+        data-src={`https://static.billatkinson.us/srcset/srcset-${photo.photo_id}_Image.jpg`}
         data-sizes="auto"
         alt={photo.photo_title}
         class="lazyload"
@@ -283,7 +265,8 @@
           <strong class="p-id">#{photo.photo_id}:</strong>
           <strong class="p-title">{photo.photo_title}</strong>
           <span class="p-dash">—</span>
-          <span class="p-location"><br class="sp" />{photo.photo_location}</span>
+          <span class="p-location"><br class="sp" />{photo.photo_location}</span
+          >
           <span class="p-year">({photo.photo_year})</span>
         </div>
       </div>
