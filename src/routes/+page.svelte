@@ -1,10 +1,13 @@
 <script lang="ts">
-  import HeroSlider from "$lib/components/HeroSlider.svelte";
+  import Swiper from "$lib/components/Swiper.svelte";
+  import { generateSrcset } from "$lib/utils";
   import { fly } from "svelte/transition";
   import { expoOut } from "svelte/easing";
   import { onMount } from "svelte";
 
   let show = false;
+  const photoIds = [1030, 1234, 1443, 1630, 1997, 2005, 2118];
+  const widths = [750, 1080, 1366, 1880, 2240, 3000];
 
   onMount(() => {
     show = true;
@@ -19,7 +22,14 @@
     <h4>Over 900 color photographs celebrating the beauty of nature.</h4>
   </section>
 
-  <HeroSlider />
+  <Swiper 
+    {photoIds}
+    {widths}
+    {generateSrcset}
+    transitionSpeed={3000}
+    autoplayDelay={6000}
+    aspectRatio="7/5"
+  />
 {/if}
 
 <style>

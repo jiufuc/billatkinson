@@ -16,7 +16,7 @@
 
   // Popover for mobile filters
   const {
-    elements: { trigger, content, overlay, arrow },
+    elements: { trigger, content, overlay },
     states: { open },
   } = createPopover({
     forceVisible: true,
@@ -301,14 +301,10 @@
       ></div>
       <div
         use:melt={$content}
-        class="fixed z-100 bg-white border border-gray-300 shadow-xl rounded-xl p-6 max-w-90 w-max-content"
+        class="fixed z-100 bg-white border border-gray-300 shadow-xl rounded-xl p-6 w-max-content"
         transition:fade={{ duration: 300 }}
       >
-        <div
-          use:melt={$arrow}
-          class="absolute w-3 h-3 bg-inherit transform rotate-45 border border-gray-300 border-t-0 border-l-0 z-0"
-        ></div>
-        <div class="flex flex-col items-center gap-5 min-w-[300px]">
+        <div class="flex flex-col items-center gap-5 min-w-sm xl:min-w-xl">
           <h3 class="text-lg font-medium text-gray-900 self-start">Filter Photos</h3>
           
           <!-- Custom Tags Input in Popover -->
