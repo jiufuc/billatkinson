@@ -3,28 +3,28 @@
 
 @font-face {
   font-family: "SF Pro";
-  src: url(../fonts/SF-Pro.woff2) format("woff2-variations");
+  src: url(/fonts/SF-Pro.woff2) format("woff2-variations");
   font-weight: 100 900;
   font-style: normal;
 }
 
 @font-face {
   font-family: "SF Pro Italic";
-  src: url(../fonts/SF-Pro-Italic.woff2) format("woff2-variations");
+  src: url(/fonts/SF-Pro-Italic.woff2) format("woff2-variations");
   font-weight: 100 900;
   font-style: italic;
 }
 
 @font-face {
   font-family: "New York";
-  src: url(../fonts/NewYork.woff2) format("woff2-variations");
+  src: url(/fonts/NewYork.woff2) format("woff2-variations");
   font-weight: 100 900;
   font-style: normal;
 }
 
 @font-face {
   font-family: "New York Italic";
-  src: url(../fonts/NewYorkItalic.woff2) format("woff2-variations");
+  src: url(/fonts/NewYorkItalic.woff2) format("woff2-variations");
   font-weight: 100 900;
   font-style: italic;
 }
@@ -92,14 +92,14 @@ body {
   line-height: 1.5;
   color: #342616;
   text-align: left;
-  background-image: url("../images/bg.webp");
+  background-image: url("/images/bg.webp");
   background-color: #f9f4f1;
   overflow-x: hidden;
 }
 
 @media (max-width: 767px) {
   body {
-    background-image: url("../images/bg_sp.webp");
+    background-image: url("/images/bg_sp.webp");
   }
 }
 
