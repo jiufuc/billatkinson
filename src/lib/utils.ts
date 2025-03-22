@@ -73,20 +73,53 @@ export function cn(...inputs: (string | undefined | null | boolean)[]): string {
 }
 
 export function generateSrcset(photoId: number, widths: number[]): string {
-    const srcsetCache = new Map<number, string>();
-    if (srcsetCache.has(photoId)) {
-      return srcsetCache.get(photoId)!;
-    }
-    
-    const zone = "https://static.billatkinson.us";
-    const url = `srcset/srcset-${photoId}_Image.jpg`;
-    const result = widths
-      .map(
-        (width) =>
-          `${zone}/cdn-cgi/image/w=${width},f=auto/${url} ${width}w`
-      )
-      .join(", ");
-      
-    srcsetCache.set(photoId, result);
-    return result;
+  const srcsetCache = new Map<number, string>();
+  if (srcsetCache.has(photoId)) {
+    return srcsetCache.get(photoId)!;
   }
+  
+  const zone = "https://static.billatkinson.us";
+  const url = `srcset/srcset-${photoId}_Image.jpg`;
+  const result = widths
+    .map(
+      (width) =>
+        `${zone}/cdn-cgi/image/w=${width},f=auto/${url} ${width}w`
+    )
+    .join(", ");
+    
+  srcsetCache.set(photoId, result);
+  return result;
+}
+
+
+export function viewport(element: HTMLElement, {
+  onEnter = () => {},
+  onExit = () => {}
+}: {
+  onEnter?: () => void,
+  onExit?: () => void
+} = {}) {
+  const intersectionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          onEnter();
+        } else {
+          onExit();
+        }
+      });
+    }
+  );
+
+  intersectionObserver.observe(element);
+
+  return {
+    destroy() {
+      intersectionObserver.unobserve(element);
+    },
+    update(params: { onEnter?: () => void, onExit?: () => void }) {
+      onEnter = params.onEnter || onEnter;
+      onExit = params.onExit || onExit;
+    }
+  };
+}

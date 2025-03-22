@@ -15,7 +15,6 @@
   export let baseImgUrl: string =
     "https://static.billatkinson.us/srcset/srcset-";
   export let imgUrlSuffix: string = "_Image.jpg";
-  export const aspectRatio: string = "7/5";
 
   let swiperInstance: Swiper | null = null;
   let progressWidth = 0;
@@ -130,7 +129,7 @@
 
   .swiper {
     width: 100%;
-    aspect-ratio: var(--aspect-ratio, 7/5);
+    height: 100vh;
   }
 
   .swiper-slide {
@@ -160,7 +159,6 @@
   :global(.swiper-slide-next .slide-image) {
     transform: scale(1.1);
   }
-
   :global(.swiper-slide-active .slide-image) {
     transform: scale(1);
   }

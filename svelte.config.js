@@ -18,6 +18,9 @@ const config = {
     alias: {
       $lib: path.resolve("./src/lib"),
     },
+    paths: {
+      relative: false
+    }
 	},
   preprocess: sequence([
     preprocessMeltUI() 

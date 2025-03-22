@@ -92,8 +92,15 @@ body {
   line-height: 1.5;
   color: #342616;
   text-align: left;
+  background-image: url("../images/bg.webp");
   background-color: #f9f4f1;
   overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+  body {
+    background-image: url("../images/bg_sp.webp");
+  }
 }
 
 h1,
